@@ -3,11 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const authenticateUser = async (username, password) => {
-  console.log('Buscando usuario:', username);
-
   const user = await pool.query('SELECT * FROM users WHERE LOWER(username) = LOWER($1)', [username]);
-
-
   console.log('Resultado de la consulta:', user.rows); 
 
   if (user.rows.length === 0) {
