@@ -1,12 +1,12 @@
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
-const bd = require('./config/db')
+const cookieParser = require('cookie-parser'); 
 require('dotenv').config();
 
 const app = express();
 
 app.use(express.json());
-
+app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
 
