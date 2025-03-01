@@ -19,7 +19,7 @@ const authenticateUser = async (username, password) => {
   const token = jwt.sign(
     { userId: user.rows[0].id, role: user.rows[0].role },
     process.env.JWT_SECRET,
-    { expiresIn: '1m' }
+    { expiresIn: '4h' }
   );
   
   console.log('Token generado:', token);

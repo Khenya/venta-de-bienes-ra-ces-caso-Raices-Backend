@@ -1,4 +1,5 @@
 const { authenticateUser } = require('../services/authService');
+const { addToBlacklist } = require('../utils/blacklist');
 
 const login = async (req, res) => {
   try {
@@ -20,4 +21,18 @@ const login = async (req, res) => {
 };
 
 
-module.exports = { login };
+const logout = (req, res) => {
+  const token = req.cookies.jwt;
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided.' });
+  }
+
+  addToBlacklist(token); 
+
+  res.clearCookie('jwt'); 
+  res.status(200).json({ message: 'Logout successful' });
+};
+
+
+module.exports = { login, logout };
