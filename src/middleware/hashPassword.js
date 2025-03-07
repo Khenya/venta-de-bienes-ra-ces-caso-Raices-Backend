@@ -1,10 +1,9 @@
 const bcrypt = require('bcryptjs');
 
-const password = 'password';
-
-async function hashPassword() {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  console.log('Contraseña Hasheada:', hashedPassword);
+async function hashPassword(password) {
+  const saltRounds = 10; 
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  return hashedPassword; 
 }
 
-hashPassword();
+module.exports = hashPassword; 
