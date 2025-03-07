@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const pool = require('../db/db');
+const pool = require('../config/db');
 const hashPassword = require('../middleware/hashPassword')
 
 const Users = {
