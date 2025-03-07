@@ -7,11 +7,11 @@ router.get('/profile', authenticateToken, (req, res) => {
   res.json({ message: 'Perfil del usuario', user: req.user });
 });
 
-router.get('/admin', authenticateToken, checkPermission('edit_inmuebles'), (req, res) => {
+router.get('/admin', authenticateToken, checkPermission('edit_property'), (req, res) => {
   res.json({ message: 'Acceso concedido: Eres un administrador.' });
 });
 
-router.get('/dueño', authenticateToken, checkPermission('view_inmuebles'), (req, res) => {
+router.get('/owner', authenticateToken, checkPermission('see_property'), (req, res) => {
   res.json({ message: 'Acceso concedido: Eres un dueño.' });
 });
 
