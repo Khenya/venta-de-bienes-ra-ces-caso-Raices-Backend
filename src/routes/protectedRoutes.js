@@ -24,18 +24,18 @@ router.get('/owner', authenticateToken, checkPermission('see_property'), (req, r
   res.json({ message: 'Acceso concedido: Eres un dueño.' });
 });
 
-router.get('/properties', verificarToken, getAllPropertiesHandler);
+router.get('/properties', authenticateToken, getAllPropertiesHandler);
 
-router.get('/my-properties', verificarToken, getPropertiesByUserHandler);
+router.get('/my-properties', authenticateToken, getPropertiesByUserHandler);
 
-router.get('/properties/:id', verificarToken, getPropertyByIdHandler);
+router.get('/properties/:id', authenticateToken, getPropertyByIdHandler);
 
-router.get('/properties/state/:state', verificarToken, getPropertyByStateHandler);
+router.get('/properties/state/:state', authenticateToken, getPropertyByStateHandler);
 
-router.get('/properties/price/:price', verificarToken, getPropertyByPriceHandler);
+router.get('/properties/price/:price', authenticateToken, getPropertyByPriceHandler);
 
-router.get('/properties/manzano/:manzano', verificarToken, getPropertyByManzanoHandler);
+router.get('/properties/manzano/:manzano', authenticateToken, getPropertyByManzanoHandler);
 
-router.get('/properties/batch/:batch', verificarToken, getPropertyByBatchHandler);
+router.get('/properties/batch/:batch', authenticateToken, getPropertyByBatchHandler);
 
 module.exports = router;
