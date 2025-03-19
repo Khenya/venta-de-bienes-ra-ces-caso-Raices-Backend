@@ -13,6 +13,7 @@ const {
   createOrUpdateProperty,
   updatePropertyState
 } = require('../controllers/propertyController');
+const { createCustomer } = require('../controllers/customerController')
 
 router.get('/profile', authenticateToken, (req, res) => {
   res.json({ message: 'Perfil del usuario', user: req.user });
@@ -45,5 +46,7 @@ router.post('/property', authenticateToken, createOrUpdateProperty);
 router.put('/property/:id', authenticateToken, createOrUpdateProperty);
 
 router.patch('/property/:id/state', authenticateToken, updatePropertyState);
+
+router.post('/customer', authenticateToken, createCustomer);
 
 module.exports = router;
