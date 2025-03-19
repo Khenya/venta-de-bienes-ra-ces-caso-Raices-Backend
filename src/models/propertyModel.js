@@ -1,9 +1,13 @@
 const pool = require('../config/db');
 
 const getAllProperties = async () => {
-  const query = 'SELECT * FROM property';
-  const { rows } = await pool.query(query);
-  return rows;
+  try {
+    const query = 'SELECT * FROM property';
+    const { rows } = await pool.query(query);
+    return rows;
+  } catch (error) {
+    throw new Error('Error al obtener las propiedades'); 
+  }
 };
 
 const getPropertiesByUser = async (userId) => {
@@ -36,7 +40,7 @@ const getPropertyByPrice = async (price) => {
       console.error('Error al obtener propiedades por precio:', error.message);
       throw new Error('No se pudieron obtener las propiedades');
     }
-  };
+};
   
   
 const getPropertyByState = async (state) => {
@@ -72,20 +76,16 @@ const getPropertyByManzano = async (manzano) => {
 };    
 
 const getPropertyByBatch = async (batch) => {
-    try {
-      if (!batch || isNaN(batch)) {
-        throw new Error('El lote debe ser un número válido');
-      }
-  
-      const query = 'SELECT * FROM property WHERE lote = $1';
-      const { rows } = await pool.query(query, [batch]);
-  
-      return rows;
-    } catch (error) {
-      console.error('Error al obtener propiedades por lote:', error.message);
-      throw new Error('No se pudieron obtener las propiedades');
-    }
-};    
+  try {
+    const query = 'SELECT * FROM property WHERE batch = $1';
+    const { rows } = await pool.query(query, [batch]);
+
+    return rows;
+  } catch (error) {
+    console.error('Error al obtener propiedades por lote:', error.message);
+    throw new Error('No se pudieron obtener las propiedades');
+  }
+};
 
 module.exports = {
   getAllProperties,

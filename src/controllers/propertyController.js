@@ -10,23 +10,40 @@ const {
 
 const getAllPropertiesHandler = async (req, res) => {
   try {
-    if (req.user.role !== 'Administrador') {
+    if (!req.user || req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Acceso denegado' });
     }
-    const properties = await getAllProperties();
+
+    const properties = await getAllProperties(); 
+
+    if (!properties || properties.length === 0) {
+      return res.status(404).json({ message: 'No hay propiedades disponibles' });
+    }
+
     res.json(properties);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los inmuebles' });
+    res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
   }
-};
+};  
 
 const getPropertiesByUserHandler = async (req, res) => {
   try {
-    const userId = req.user.id;
+    if (!req.user || !req.user.userId) { 
+      return res.status(400).json({ message: "No se pudo obtener el ID del usuario" });
+    }
+
+    const userId = req.user.userId; 
+
     const properties = await getPropertiesByUser(userId);
+
+    if (properties.length === 0) {
+      return res.status(404).json({ message: "No se encontraron propiedades para este usuario" });
+    }
+
     res.json(properties);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener los inmuebles' });
+    console.error("Error al obtener los inmuebles:", error.message);
+    res.status(500).json({ message: "Error al obtener los inmuebles" });
   }
 };
 
@@ -104,7 +121,8 @@ const getPropertyByBatchHandler = async (req, res) => {
   
       res.json(properties);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error('Error al obtener propiedades por lote:', error.message);
+      res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
     }
 };
 
