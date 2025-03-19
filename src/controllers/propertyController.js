@@ -5,7 +5,9 @@ const {
     getPropertyByState,
     getPropertyByPrice,
     getPropertyByManzano, 
-    getPropertyByBatch
+    getPropertyByBatch, 
+    create, 
+    update
 } = require('../models/propertyModel');
 
 const getAllPropertiesHandler = async (req, res) => {
@@ -126,6 +128,51 @@ const getPropertyByBatchHandler = async (req, res) => {
     }
 };
 
+const createOrUpdateProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number } = req.body;
+
+    if (!manzano || !batch || !state || !meters) {
+      return res.status(400).json({ message: "Campos obligatorios: manzano, batch, state, meters" });
+    }
+
+    let property;
+    if (id) {
+      property = await update(id, { manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number });
+    } else {
+      property = await create({ manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number });
+    }
+
+    res.status(200).json({ message: id ? "Propiedad actualizada" : "Propiedad creada", property });
+  } catch (error) {
+    console.error("Error al guardar propiedad:", error.message);
+    res.status(500).json({ message: "No se pudo guardar la propiedad" });
+  }
+};
+
+const updatePropertyState = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { state } = req.body;
+
+    const allowedStates = ["libre", "reservado", "retrasado", "cancelado", "pagado", "caducado"];
+    if (!allowedStates.includes(state)) {
+      return res.status(400).json({ message: "Estado inválido" });
+    }
+
+    const property = await Property.update(id, { state });
+    if (!property) {
+      return res.status(404).json({ message: "Propiedad no encontrada" });
+    }
+
+    res.status(200).json({ message: "Estado actualizado", property });
+  } catch (error) {
+    console.error("Error al actualizar estado:", error.message);
+    res.status(500).json({ message: "No se pudo actualizar el estado" });
+  }
+};
+
 module.exports = {
     getAllPropertiesHandler,
     getPropertiesByUserHandler,
@@ -133,5 +180,7 @@ module.exports = {
     getPropertyByStateHandler,
     getPropertyByPriceHandler,
     getPropertyByManzanoHandler, 
-    getPropertyByBatchHandler
+    getPropertyByBatchHandler, 
+    createOrUpdateProperty,
+    updatePropertyState
 };

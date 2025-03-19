@@ -87,6 +87,25 @@ const getPropertyByBatch = async (batch) => {
   }
 };
 
+const create = async (propertyData) => {
+  const query = `
+    INSERT INTO property (manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number) 
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;
+  `;
+  const values = Object.values(propertyData);
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+};
+
+const update = async (id, propertyData) => {
+  const fields = Object.keys(propertyData).map((key, i) => `${key} = $${i + 1}`).join(', ');
+  const values = [...Object.values(propertyData), id];
+
+  const query = `UPDATE property SET ${fields} WHERE property_id = $${values.length} RETURNING *;`;
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByUser,
@@ -94,5 +113,7 @@ module.exports = {
   getPropertyByState,
   getPropertyByPrice,
   getPropertyByManzano, 
-  getPropertyByBatch
+  getPropertyByBatch,
+  create,
+  update
 };

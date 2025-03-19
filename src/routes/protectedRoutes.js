@@ -9,7 +9,9 @@ const {
   getPropertyByStateHandler,
   getPropertyByPriceHandler,
   getPropertyByManzanoHandler, 
-  getPropertyByBatchHandler
+  getPropertyByBatchHandler,
+  createOrUpdateProperty,
+  updatePropertyState
 } = require('../controllers/propertyController');
 
 router.get('/profile', authenticateToken, (req, res) => {
@@ -37,5 +39,11 @@ router.get('/properties/price/:price', authenticateToken, getPropertyByPriceHand
 router.get('/properties/manzano/:manzano', authenticateToken, getPropertyByManzanoHandler);
 
 router.get('/properties/batch/:batch', authenticateToken, getPropertyByBatchHandler);
+
+router.post('/property', authenticateToken, createOrUpdateProperty);
+
+router.put('/property/:id', authenticateToken, createOrUpdateProperty);
+
+router.patch('/property/:id/state', authenticateToken, updatePropertyState);
 
 module.exports = router;
