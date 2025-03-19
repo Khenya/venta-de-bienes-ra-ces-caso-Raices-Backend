@@ -3,27 +3,38 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const authenticateUser = async (username, password) => {
-  const user = await pool.query('SELECT * FROM users WHERE LOWER(username) = LOWER($1)', [username]);
- 
-  if (user.rows.length === 0) {
-    throw new Error('Tenant or user not found');
-  }
-  const storedHashedPassword = user.rows[0].password;
+  try {
+    const query = `
+      SELECT users.user_id, users.password, role.name AS role
+      FROM users
+      JOIN role ON users.rol_id = role.role_id
+      WHERE LOWER(users.username) = LOWER($1)
+    `;
 
-  const validPassword = await bcrypt.compare(password, storedHashedPassword);
+    const user = await pool.query(query, [username]);
 
-  if (!validPassword) {
-    throw new Error('Invalid credentials');
+    if (user.rows.length === 0) {
+      throw new Error('Usuario no encontrado');
+    }
+
+    const storedHashedPassword = user.rows[0].password;
+    const validPassword = await bcrypt.compare(password, storedHashedPassword);
+
+    if (!validPassword) {
+      throw new Error('Credenciales inválidas');
+    }
+
+    const token = jwt.sign(
+      { userId: user.rows[0].user_id, role: user.rows[0].role }, 
+      process.env.JWT_SECRET,
+      { expiresIn: '4h' }
+    );
+
+    return token;
+  } catch (error) {
+    console.error("Error en la autenticación:", error.message);
+    throw error;
   }
-  
-  const token = jwt.sign(
-    { userId: user.rows[0].id, role: user.rows[0].role },
-    process.env.JWT_SECRET,
-    { expiresIn: '4h' }
-  );
-  
-  console.log('Token generado:', token);
-  return token;
 };
 
 module.exports = { authenticateUser };
