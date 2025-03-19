@@ -23,13 +23,11 @@ const authenticateUser = async (username, password) => {
     if (!validPassword) {
       throw new Error('Credenciales inválidas');
     }
-
     const token = jwt.sign(
       { userId: user.rows[0].user_id, role: user.rows[0].role }, 
       process.env.JWT_SECRET,
       { expiresIn: '4h' }
     );
-
     return token;
   } catch (error) {
     console.error("Error en la autenticación:", error.message);
