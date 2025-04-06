@@ -2,7 +2,20 @@ const pool = require('../config/db');
 
 const getAllProperties = async () => {
   try {
-    const query = 'SELECT * FROM property';
+    const query = `
+      SELECT 
+        p.*,
+        STRING_AGG(o.name, ', ') AS owner_names,
+        STRING_AGG(o.CI::text, ', ') AS owner_cis
+      FROM 
+        property p
+      JOIN 
+        owner_property op ON p.property_id = op.property_id
+      JOIN 
+        owner o ON op.owner_id = o.CI
+      GROUP BY 
+        p.property_id
+    `;
     const { rows } = await pool.query(query);
     return rows;
   } catch (error) {
