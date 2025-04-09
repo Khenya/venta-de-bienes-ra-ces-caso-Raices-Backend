@@ -102,8 +102,8 @@ const getPropertyByBatch = async (batch) => {
 
 const create = async (propertyData) => {
   const query = `
-    INSERT INTO property (manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *;
+    INSERT INTO property (manzano, batch, state, meters, price, folio_number, testimony_numbre, location, property_number)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
   `;
   const values = Object.values(propertyData);
   const { rows } = await pool.query(query, values);

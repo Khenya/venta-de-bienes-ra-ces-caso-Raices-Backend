@@ -9,6 +9,7 @@ const {
     create, 
     update
 } = require('../models/propertyModel');
+const Owner = require('../models/owner.model');
 
 const getAllPropertiesHandler = async (req, res) => {
   try {
@@ -131,25 +132,54 @@ const getPropertyByBatchHandler = async (req, res) => {
 const createOrUpdateProperty = async (req, res) => {
   try {
     const { id } = req.params;
-    const { manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number } = req.body;
+    const {
+      manzano,
+      batch,
+      state,
+      meters,
+      price,
+      folio_number,
+      testimony_numbre,
+      location,
+      property_number,
+      owner_name
+    } = req.body;
 
-    if (!manzano || !batch || !state || !meters) {
-      return res.status(400).json({ message: "Campos obligatorios: manzano, batch, state, meters" });
+    if (!manzano || !batch || !state || !location || !owner_name) {
+      return res.status(400).json({
+        message: "Campos obligatorios: manzano, batch, state, location, owner_name"
+      });
+    }
+    const owner = await Owner.findByName(owner_name);
+    if (!owner) {
+      return res.status(404).json({ message: "El propietario no existe" });
     }
 
     let property;
     if (id) {
-      property = await update(id, { manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number });
+      property = await update(id, {
+        manzano, batch, state, meters, price,
+        folio_number, testimony_numbre, location, property_number
+      });
     } else {
-      property = await create({ manzano, batch, state, meters, price, folio_number, numero_inmueble, testimony_numbre, location, property_number });
+      property = await create({
+        manzano, batch, state, meters, price,
+        folio_number, testimony_numbre, location, property_number
+      });
+
+      await Owner.linkToProperty(owner.ci, property.property_id);
+
     }
 
-    res.status(200).json({ message: id ? "Propiedad actualizada" : "Propiedad creada", property });
+    res.status(200).json({
+      message: id ? "Propiedad actualizada" : "Propiedad creada y asociada al propietario",
+      property
+    });
   } catch (error) {
     console.error("Error al guardar propiedad:", error.message);
     res.status(500).json({ message: "No se pudo guardar la propiedad" });
   }
-};
+};;
 
 const updatePropertyState = async (req, res) => {
   try {
