@@ -25,74 +25,127 @@ const getAllProperties = async () => {
 
 const getPropertiesByUser = async (userId) => {
   const query = `
-    SELECT p.* FROM property p
+    SELECT 
+      p.*, 
+      STRING_AGG(o.name, ', ') AS owner_names,
+      STRING_AGG(o.ci::text, ', ') AS owner_cis
+    FROM property p
     INNER JOIN property_users pu ON p.property_id = pu.property_id
+    INNER JOIN owner_property op ON p.property_id = op.property_id
+    INNER JOIN owner o ON op.owner_id = o.ci
     WHERE pu.user_id = $1
+    GROUP BY p.property_id
   `;
   const { rows } = await pool.query(query, [userId]);
   return rows;
 };
 
 const getPropertyById = async (propertyId) => {
-  const query = 'SELECT * FROM property WHERE property_id = $1';
+  const query = `
+    SELECT 
+      p.*, 
+      STRING_AGG(o.name, ', ') AS owner_names,
+      STRING_AGG(o.ci::text, ', ') AS owner_cis
+    FROM property p
+    INNER JOIN owner_property op ON p.property_id = op.property_id
+    INNER JOIN owner o ON op.owner_id = o.ci
+    WHERE p.property_id = $1
+    GROUP BY p.property_id
+  `;
   const { rows } = await pool.query(query, [propertyId]);
   return rows[0];
 };
 
 const getPropertyByPrice = async (price) => {
-    try {
-      if (!price || isNaN(price)) {
-        throw new Error('El precio debe ser un número válido');
-      }
-  
-      const query = 'SELECT * FROM property WHERE price <= $1';
-      const { rows } = await pool.query(query, [price]);
-  
-      return rows;
-    } catch (error) {
-      console.error('Error al obtener propiedades por precio:', error.message);
-      throw new Error('No se pudieron obtener las propiedades');
+  try {
+    if (!price || isNaN(price)) {
+      throw new Error('El precio debe ser un número válido');
     }
+
+    const query = `
+      SELECT 
+        p.*, 
+        STRING_AGG(o.name, ', ') AS owner_names,
+        STRING_AGG(o.ci::text, ', ') AS owner_cis
+      FROM property p
+      INNER JOIN owner_property op ON p.property_id = op.property_id
+      INNER JOIN owner o ON op.owner_id = o.ci
+      WHERE p.price <= $1
+      GROUP BY p.property_id
+    `;
+    const { rows } = await pool.query(query, [price]);
+    return rows;
+  } catch (error) {
+    console.error('Error al obtener propiedades por precio:', error.message);
+    throw new Error('No se pudieron obtener las propiedades');
+  }
 };
   
   
 const getPropertyByState = async (state) => {
-    try {
-      if (!state) {
-        throw new Error('El estado es requerido');
-      }
-  
-      const query = 'SELECT * FROM property WHERE LOWER(state) = LOWER($1)';
-      const { rows } = await pool.query(query, [state]);
-  
-      return rows;
-    } catch (error) {
-      console.error('Error al obtener propiedades por estado:', error.message);
-      throw new Error('No se pudieron obtener las propiedades');
+  try {
+    if (!state) {
+      throw new Error('El estado es requerido');
     }
+
+    const query = `
+      SELECT 
+        p.*, 
+        STRING_AGG(o.name, ', ') AS owner_names,
+        STRING_AGG(o.ci::text, ', ') AS owner_cis
+      FROM property p
+      INNER JOIN owner_property op ON p.property_id = op.property_id
+      INNER JOIN owner o ON op.owner_id = o.ci
+      WHERE LOWER(p.state) = LOWER($1)
+      GROUP BY p.property_id
+    `;
+    const { rows } = await pool.query(query, [state]);
+    return rows;
+  } catch (error) {
+    console.error('Error al obtener propiedades por estado:', error.message);
+    throw new Error('No se pudieron obtener las propiedades');
+  }
 };
 
 const getPropertyByManzano = async (manzano) => {
-    try {
-      if (!manzano || isNaN(manzano)) {
-        throw new Error('El manzano debe ser un número válido');
-      }
-  
-      const query = 'SELECT * FROM property WHERE manzano = $1';
-      const { rows } = await pool.query(query, [manzano]);
-  
-      return rows;
-    } catch (error) {
-      console.error('Error al obtener propiedades por manzano:', error.message);
-      throw new Error('No se pudieron obtener las propiedades');
+  try {
+    if (!manzano || isNaN(manzano)) {
+      throw new Error('El manzano debe ser un número válido');
     }
-};    
+
+    const query = `
+      SELECT 
+        p.*, 
+        STRING_AGG(o.name, ', ') AS owner_names,
+        STRING_AGG(o.ci::text, ', ') AS owner_cis
+      FROM property p
+      INNER JOIN owner_property op ON p.property_id = op.property_id
+      INNER JOIN owner o ON op.owner_id = o.ci
+      WHERE p.manzano = $1
+      GROUP BY p.property_id
+    `;
+    const { rows } = await pool.query(query, [manzano]);
+    return rows;
+  } catch (error) {
+    console.error('Error al obtener propiedades por manzano:', error.message);
+    throw new Error('No se pudieron obtener las propiedades');
+  }
+};   
 
 const getPropertyByBatch = async (batch) => {
   try {
-    const query = 'SELECT * FROM property WHERE batch = $1';
+    const query = `
+      SELECT 
+        p.*, 
+        STRING_AGG(o.name, ', ') AS owner_names,
+        STRING_AGG(o.ci::text, ', ') AS owner_cis
+      FROM property p
+      INNER JOIN owner_property op ON p.property_id = op.property_id
+      INNER JOIN owner o ON op.owner_id = o.ci
+      WHERE p.batch = $1
+      GROUP BY p.property_id
+    `;
     const { rows } = await pool.query(query, [batch]);
-
     return rows;
   } catch (error) {
     console.error('Error al obtener propiedades por lote:', error.message);
