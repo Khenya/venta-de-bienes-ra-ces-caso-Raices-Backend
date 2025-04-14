@@ -7,7 +7,8 @@ const {
     getPropertyByManzano, 
     getPropertyByBatch, 
     create, 
-    update
+    update,
+    createObservation
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 
@@ -203,6 +204,41 @@ const updatePropertyState = async (req, res) => {
   }
 };
 
+const createObservationHandler = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'No autorizado' });
+    }
+
+    const { property_id, observacion } = req.body;
+    
+    if (!property_id || !observacion) {
+      return res.status(400).json({ 
+        message: 'Se requieren property_id y observacion' 
+      });
+    }
+
+    const observacionData = {
+      property_id,
+      observacion,
+      date: new Date() 
+    };
+
+    const newObservation = await createObservation(observacionData);
+    res.status(201).json({
+      message: 'Observación creada exitosamente',
+      observation: newObservation
+    });
+
+  } catch (error) {
+    console.error('Error al crear observación:', error.message);
+    res.status(500).json({ 
+      message: 'Error al crear observación',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
     getAllPropertiesHandler,
     getPropertiesByUserHandler,
@@ -212,5 +248,6 @@ module.exports = {
     getPropertyByManzanoHandler, 
     getPropertyByBatchHandler, 
     createOrUpdateProperty,
-    updatePropertyState
+    updatePropertyState, 
+    createObservationHandler
 };

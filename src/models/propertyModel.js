@@ -42,15 +42,18 @@ const getPropertiesByUser = async (userId) => {
 
 const getPropertyById = async (propertyId) => {
   const query = `
-    SELECT 
-      p.*, 
-      STRING_AGG(o.name, ', ') AS owner_names,
-      STRING_AGG(o.ci::text, ', ') AS owner_cis
+    SELECT
+    p.*,
+    STRING_AGG(DISTINCT o.name, ', ') AS owner_names,
+    STRING_AGG(DISTINCT o.ci::text, ', ') AS owner_cis,
+    STRING_AGG(DISTINCT obs.observacion, ' | ') AS observations,
+    STRING_AGG(DISTINCT obs.date::text, ' | ') AS observation_dates
     FROM property p
-    INNER JOIN owner_property op ON p.property_id = op.property_id
-    INNER JOIN owner o ON op.owner_id = o.ci
+            INNER JOIN owner_property op ON p.property_id = op.property_id
+            INNER JOIN owner o ON op.owner_id = o.ci
+            LEFT JOIN observation obs ON p.property_id = obs.property_id
     WHERE p.property_id = $1
-    GROUP BY p.property_id
+    GROUP BY p.property_id;
   `;
   const { rows } = await pool.query(query, [propertyId]);
   return rows[0];
@@ -172,6 +175,16 @@ const update = async (id, propertyData) => {
   return rows[0];
 };
 
+const createObservation = async(observacionData) => {
+  const query = `
+    INSERT INTO observation (property_id, observacion, date)
+    VALUES ($1, $2, $3) RETURNING*;
+  `;
+  const values = Object.values(observacionData);
+  const { rows } = await pool.query(query, values);
+  return rows[0];
+}
+
 module.exports = {
   getAllProperties,
   getPropertiesByUser,
@@ -181,5 +194,6 @@ module.exports = {
   getPropertyByManzano, 
   getPropertyByBatch,
   create,
-  update
+  update, 
+  createObservation
 };

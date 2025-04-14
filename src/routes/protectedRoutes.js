@@ -11,7 +11,8 @@ const {
   getPropertyByManzanoHandler, 
   getPropertyByBatchHandler,
   createOrUpdateProperty,
-  updatePropertyState
+  updatePropertyState, 
+  createObservationHandler
 } = require('../controllers/propertyController');
 const { createCustomer } = require('../controllers/customerController')
 
@@ -48,5 +49,7 @@ router.put('/property/:id', authenticateToken, createOrUpdateProperty);
 router.patch('/property/:id/state', authenticateToken, updatePropertyState);
 
 router.post('/customer', authenticateToken, createCustomer);
+
+router.post('/observation', authenticateToken, createObservationHandler);
 
 module.exports = router;
