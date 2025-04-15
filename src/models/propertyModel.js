@@ -45,18 +45,23 @@ const getPropertiesByUser = async (userId) => {
 const getPropertyById = async (propertyId) => {
   const query = `
     SELECT
-    p.*,
-    STRING_AGG(DISTINCT o.name, ', ') AS owner_names,
-    STRING_AGG(DISTINCT o.ci::text, ', ') AS owner_cis,
-    STRING_AGG(DISTINCT obs.observacion, ' | ') AS observations,
-    STRING_AGG(DISTINCT obs.date::text, ' | ') AS observation_dates
+        p.*,
+        STRING_AGG(DISTINCT o.name, ', ') AS owner_names,
+        STRING_AGG(DISTINCT o.ci::text, ', ') AS owner_cis,
+        STRING_AGG(DISTINCT obs.observacion, ' | ') AS observations,
+        STRING_AGG(DISTINCT obs.date::text, ' | ') AS observation_dates,
+        STRING_AGG(DISTINCT c.name::text, ' | ') AS customer_name,
+        STRING_AGG(DISTINCT c.phone::text, ' | ') AS customer_phone,
+        STRING_AGG(DISTINCT c.ci::text, ' | ') AS customer_ci
     FROM property p
             INNER JOIN owner_property op ON p.property_id = op.property_id
             INNER JOIN owner o ON op.owner_id = o.ci
             LEFT JOIN observation obs ON p.property_id = obs.property_id
+            LEFT JOIN notification_customer_property cnp ON p.property_id = cnp.id_inmueble
+            LEFT JOIN customer c ON cnp.customer_id = c.customer_id
     WHERE p.property_id = $1
     GROUP BY p.property_id;
-  `;
+    `;
   const { rows } = await pool.query(query, [propertyId]);
   return rows[0];
 };
