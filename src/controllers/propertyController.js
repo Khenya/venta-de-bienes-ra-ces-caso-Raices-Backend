@@ -185,22 +185,32 @@ const createOrUpdateProperty = async (req, res) => {
 const updatePropertyState = async (req, res) => {
   try {
     const { id } = req.params;
-    const { state } = req.body;
+    let { state, price } = req.body;
 
-    const allowedStates = ["libre", "reservado", "retrasado", "cancelado", "pagado", "caducado"];
-    if (!allowedStates.includes(state)) {
+    if (state) state = state.toUpperCase();
+
+    const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
+    if (state && !allowedStates.includes(state)) {
       return res.status(400).json({ message: "Estado inválido" });
     }
 
-    const property = await Property.update(id, { state });
+    const updates = {};
+    if (state) updates.state = state;
+    if (price !== undefined && price !== null) updates.price = price;
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ message: "Nada para actualizar" });
+    }
+
+    const property = await update(id, updates);
     if (!property) {
       return res.status(404).json({ message: "Propiedad no encontrada" });
     }
 
-    res.status(200).json({ message: "Estado actualizado", property });
+    res.status(200).json({ message: "Propiedad actualizada", property });
   } catch (error) {
-    console.error("Error al actualizar estado:", error.message);
-    res.status(500).json({ message: "No se pudo actualizar el estado" });
+    console.error("Error al actualizar estado o precio:", error.message);
+    res.status(500).json({ message: "No se pudo actualizar la propiedad" });
   }
 };
 
