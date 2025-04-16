@@ -1,6 +1,6 @@
 const { 
     getAllProperties,
-    getPropertiesByUser,
+    getPropertiesByOwner,
     getPropertyById,
     getPropertyByState,
     getPropertyByPrice,
@@ -14,11 +14,13 @@ const Owner = require('../models/owner.model');
 
 const getAllPropertiesHandler = async (req, res) => {
   try {
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Acceso denegado' });
-    }
+    const owner = req.query.owner;
 
-    const properties = await getAllProperties(); 
+    if (owner) {
+      const filtered = await getPropertiesByOwner(owner);
+      return res.status(200).json(filtered);
+    }
+    const properties = await getAllProperties();
 
     if (!properties || properties.length === 0) {
       return res.status(404).json({ message: 'No hay propiedades disponibles' });
@@ -26,28 +28,28 @@ const getAllPropertiesHandler = async (req, res) => {
 
     res.json(properties);
   } catch (error) {
+    console.error('Error al obtener propiedades:', error.message);
     res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
   }
-};  
+};
 
-const getPropertiesByUserHandler = async (req, res) => {
+const getPropertiesByOwnerNameHandler = async (req, res) => {
   try {
-    if (!req.user || !req.user.userId) { 
-      return res.status(400).json({ message: "No se pudo obtener el ID del usuario" });
+    const { owner } = req.query;
+
+    if (!owner) {
+      return res.status(400).json({ message: "Se requiere el nombre del propietario" });
     }
 
-    const userId = req.user.userId; 
-
-    const properties = await getPropertiesByUser(userId);
-
-    if (properties.length === 0) {
-      return res.status(404).json({ message: "No se encontraron propiedades para este usuario" });
+    const result = await getPropertiesByOwner(owner);
+    if (!result || result.length === 0) {
+      return res.status(404).json({ message: "No se encontraron propiedades para ese propietario" });
     }
 
-    res.json(properties);
+    res.status(200).json(result);
   } catch (error) {
-    console.error("Error al obtener los inmuebles:", error.message);
-    res.status(500).json({ message: "Error al obtener los inmuebles" });
+    console.error("Error al obtener propiedades por dueño:", error.message);
+    res.status(500).json({ message: "Error al obtener propiedades" });
   }
 };
 
@@ -251,7 +253,7 @@ const createObservationHandler = async (req, res) => {
 
 module.exports = {
     getAllPropertiesHandler,
-    getPropertiesByUserHandler,
+    getPropertiesByOwnerNameHandler,
     getPropertyByIdHandler,
     getPropertyByStateHandler,
     getPropertyByPriceHandler,

@@ -25,20 +25,41 @@ const getAllProperties = async () => {
   }
 };
 
-const getPropertiesByUser = async (userId) => {
-  const query = `
+const getPropertiesByOwner = async (ownerName) => {
+  const ownersList = [
+    'Aydee Mercedes Choque de Alvarado',
+    'German Choque Ramos',
+    'Nancy Lidia Choque Ramos',
+    'Jose Luis Choque Ramos',
+    'Javier Yason Choque Ramos'
+  ];
+
+  let query = `
     SELECT 
       p.*, 
       STRING_AGG(o.name, ', ') AS owner_names,
       STRING_AGG(o.ci::text, ', ') AS owner_cis
     FROM property p
-    INNER JOIN property_users pu ON p.property_id = pu.property_id
     INNER JOIN owner_property op ON p.property_id = op.property_id
     INNER JOIN owner o ON op.owner_id = o.ci
-    WHERE pu.user_id = $1
-    GROUP BY p.property_id
   `;
-  const { rows } = await pool.query(query, [userId]);
+
+  let values;
+  if (ownerName.toUpperCase() === 'TODOS') {
+    query += `
+      WHERE UPPER(o.name) = ANY ($1::text[])
+      GROUP BY p.property_id
+    `;
+    values = [ownersList];
+  } else {
+    query += `
+      WHERE UPPER(o.name) = $1
+      GROUP BY p.property_id
+    `;
+    values = [ownerName.toUpperCase()];
+  }
+
+  const { rows } = await pool.query(query, values);
   return rows;
 };
 
@@ -82,6 +103,8 @@ const getPropertyByPrice = async (price) => {
       INNER JOIN owner o ON op.owner_id = o.ci
       WHERE p.price <= $1
       GROUP BY p.property_id
+      ORDER BY
+        p.property_id ASC;
     `;
     const { rows } = await pool.query(query, [price]);
     return rows;
@@ -90,7 +113,6 @@ const getPropertyByPrice = async (price) => {
     throw new Error('No se pudieron obtener las propiedades');
   }
 };
-  
   
 const getPropertyByState = async (state) => {
   try {
@@ -194,7 +216,7 @@ const createObservation = async(observacionData) => {
 
 module.exports = {
   getAllProperties,
-  getPropertiesByUser,
+  getPropertiesByOwner,
   getPropertyById,
   getPropertyByState,
   getPropertyByPrice,

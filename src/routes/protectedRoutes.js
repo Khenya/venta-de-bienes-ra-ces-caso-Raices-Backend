@@ -4,7 +4,7 @@ const authenticateToken = require('../middleware/authMiddleware');
 const checkPermission = require('../middleware/checkPermission'); 
 const {
   getAllPropertiesHandler,
-  getPropertiesByUserHandler,
+  getPropertiesByOwnerNameHandler,
   getPropertyByIdHandler,
   getPropertyByStateHandler,
   getPropertyByPriceHandler,
@@ -30,7 +30,7 @@ router.get('/owner', authenticateToken, checkPermission('see_property'), (req, r
 
 router.get('/properties', authenticateToken, getAllPropertiesHandler);
 
-router.get('/my-properties', authenticateToken, getPropertiesByUserHandler);
+router.get('/properties', authenticateToken, getAllPropertiesHandler);
 
 router.get('/properties/:id', authenticateToken, getPropertyByIdHandler);
 
