@@ -4,7 +4,6 @@ const authenticateToken = require('../middleware/authMiddleware');
 const checkPermission = require('../middleware/checkPermission'); 
 const {
   getAllPropertiesHandler,
-  getPropertiesByOwnerNameHandler,
   getPropertyByIdHandler,
   getPropertyByStateHandler,
   getPropertyByPriceHandler,
@@ -12,7 +11,8 @@ const {
   getPropertyByBatchHandler,
   createOrUpdateProperty,
   updatePropertyState, 
-  createObservationHandler
+  createObservationHandler,
+  getObservationsByPropertyId
 } = require('../controllers/propertyController');
 const { createCustomer } = require('../controllers/customerController')
 
@@ -51,5 +51,7 @@ router.patch('/property/:id/state', authenticateToken, updatePropertyState);
 router.post('/customer', authenticateToken, createCustomer);
 
 router.post('/observation', authenticateToken, createObservationHandler);
+
+router.get('/properties/:id/observations', getObservationsByPropertyId);
 
 module.exports = router;

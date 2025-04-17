@@ -69,15 +69,12 @@ const getPropertyById = async (propertyId) => {
         p.*,
         STRING_AGG(DISTINCT o.name, ', ') AS owner_names,
         STRING_AGG(DISTINCT o.ci::text, ', ') AS owner_cis,
-        STRING_AGG(DISTINCT obs.observacion, ' | ') AS observations,
-        STRING_AGG(DISTINCT obs.date::text, ' | ') AS observation_dates,
         STRING_AGG(DISTINCT c.name::text, ' | ') AS customer_name,
         STRING_AGG(DISTINCT c.phone::text, ' | ') AS customer_phone,
         STRING_AGG(DISTINCT c.ci::text, ' | ') AS customer_ci
     FROM property p
             INNER JOIN owner_property op ON p.property_id = op.property_id
             INNER JOIN owner o ON op.owner_id = o.ci
-            LEFT JOIN observation obs ON p.property_id = obs.property_id
             LEFT JOIN notification_customer_property cnp ON p.property_id = cnp.id_inmueble
             LEFT JOIN customer c ON cnp.customer_id = c.customer_id
     WHERE p.property_id = $1
@@ -214,6 +211,19 @@ const createObservation = async(observacionData) => {
   return rows[0];
 }
 
+const getObservationsByProperty = async (propertyId) => {
+  const query = `
+    SELECT 
+      observacion as note, 
+      TO_CHAR(date, 'YYYY-MM-DD') as date 
+    FROM observation 
+    WHERE property_id = $1
+    ORDER BY date DESC`;
+  
+  const { rows } = await pool.query(query, [propertyId]);
+  return rows;
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -224,5 +234,6 @@ module.exports = {
   getPropertyByBatch,
   create,
   update, 
-  createObservation
+  createObservation,
+  getObservationsByProperty
 };

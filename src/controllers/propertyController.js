@@ -8,7 +8,8 @@ const {
     getPropertyByBatch, 
     create, 
     update,
-    createObservation
+    createObservation,
+    getObservationsByProperty
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 
@@ -251,6 +252,21 @@ const createObservationHandler = async (req, res) => {
   }
 };
 
+const getObservationsByPropertyId = async (req, res) => {
+  try {
+    const propertyId = parseInt(req.params.id);
+    if (isNaN(propertyId)) {
+      return res.status(400).json({ message: 'ID de propiedad inválido' });
+    }
+
+    const observations = await getObservationsByProperty(propertyId);
+    res.json(observations);
+  } catch (error) {
+    console.error('Error al obtener observaciones:', error);
+    res.status(500).json({ message: 'Error al obtener observaciones' });
+  }
+};
+
 module.exports = {
     getAllPropertiesHandler,
     getPropertiesByOwnerNameHandler,
@@ -261,5 +277,6 @@ module.exports = {
     getPropertyByBatchHandler, 
     createOrUpdateProperty,
     updatePropertyState, 
-    createObservationHandler
+    createObservationHandler,
+    getObservationsByPropertyId
 };
