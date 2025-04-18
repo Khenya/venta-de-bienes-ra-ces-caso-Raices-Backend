@@ -12,7 +12,7 @@ const create = async (customerData) => {
 
 const linkToProperty = async (customer_id, property_id) => {
   const query = `
-    INSERT INTO notification_customer_property (customer_id, id_inmueble)
+    INSERT INTO notification_customer_property (customer_id, property_id)
     VALUES ($1, $2)
   `;
   await pool.query(query, [customer_id, property_id]);

@@ -1,4 +1,6 @@
 const pool = require('../config/db');
+const Notification = require('../models/notification.model');
+const NotificationCustomerProperty = require('../models/notification_customer_property.model');
 
 const getAllProperties = async () => {
   try {
@@ -75,7 +77,7 @@ const getPropertyById = async (propertyId) => {
     FROM property p
             INNER JOIN owner_property op ON p.property_id = op.property_id
             INNER JOIN owner o ON op.owner_id = o.ci
-            LEFT JOIN notification_customer_property cnp ON p.property_id = cnp.id_inmueble
+            LEFT JOIN notification_customer_property cnp ON p.property_id = cnp.property_id
             LEFT JOIN customer c ON cnp.customer_id = c.customer_id
     WHERE p.property_id = $1
     GROUP BY p.property_id;
@@ -240,6 +242,46 @@ const getPropertiesByUser = async (userId) => {
   return rows;
 };
 
+const updatePropertyState = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { state } = req.body;
+
+    const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
+    if (!allowedStates.includes(state.toUpperCase())) {
+      return res.status(400).json({ message: "Estado inválido" });
+    }
+
+    const property = await getPropertyById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Propiedad no encontrada" });
+    }
+
+    const updated = await update(id, { state: state.toUpperCase() });
+
+    const notification = await Notification.create({
+      property_id: property.property_id,
+      manzano: property.manzano,
+      batch: property.batch,
+      state: state.toUpperCase()
+    });
+
+    await NotificationCustomerProperty.linkPropertyToNotification(
+      property.property_id,
+      notification.notification_id
+    );
+
+    res.status(200).json({
+      message: "Propiedad actualizada y notificación generada",
+      property: updated,
+      notification
+    });
+  } catch (error) {
+    console.error("Error al actualizar estado o crear notificación:", error.message);
+    res.status(500).json({ message: "No se pudo actualizar la propiedad" });
+  }
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -252,5 +294,6 @@ module.exports = {
   update, 
   createObservation,
   getObservationsByProperty,
-  getPropertiesByUser
+  getPropertiesByUser,
+  updatePropertyState
 };
