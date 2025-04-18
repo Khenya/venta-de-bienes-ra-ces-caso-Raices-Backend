@@ -251,7 +251,6 @@ const updatePropertyState = async (req, res) => {
     if (!allowedStates.includes(state.toUpperCase())) {
       return res.status(400).json({ message: "Estado inválido" });
     }
-
     const property = await getPropertyById(id);
     if (!property) {
       return res.status(404).json({ message: "Propiedad no encontrada" });

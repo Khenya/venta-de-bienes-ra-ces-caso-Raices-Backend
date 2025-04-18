@@ -10,10 +10,12 @@ const {
     update,
     createObservation,
     getObservationsByProperty,
-    getPropertiesByUser
+    getPropertiesByUser,
+    
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
-
+const Notification = require('../models/notification.model');
+const NotificationCustomerProperty = require('../models/notification_customer_property.model');
 const getAllPropertiesHandler = async (req, res) => {
   try {
     const owner = req.query.owner;
@@ -186,34 +188,48 @@ const createOrUpdateProperty = async (req, res) => {
   }
 };;
 
+
 const updatePropertyState = async (req, res) => {
   try {
     const { id } = req.params;
     let { state, price } = req.body;
 
-    if (state) state = state.toUpperCase();
-
     const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
-    if (state && !allowedStates.includes(state)) {
+    if (state && !allowedStates.includes(state.toUpperCase())) {
       return res.status(400).json({ message: "Estado inválido" });
     }
 
     const updates = {};
-    if (state) updates.state = state;
+    if (state) updates.state = state.toUpperCase();
     if (price !== undefined && price !== null) updates.price = price;
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: "Nada para actualizar" });
     }
 
-    const property = await update(id, updates);
-    if (!property) {
-      return res.status(404).json({ message: "Propiedad no encontrada" });
-    }
+    const property = await getPropertyById(id);
 
-    res.status(200).json({ message: "Propiedad actualizada", property });
+    const updated = await update(id, updates);
+
+    const notification = await Notification.create({
+      property_id: property.property_id,
+      manzano: property.manzano,
+      batch: property.batch,
+      state: state.toUpperCase()
+    });
+
+    await NotificationCustomerProperty.linkPropertyToNotification(
+      property.property_id,
+      notification.notification_id
+    );
+
+    res.status(200).json({
+      message: "Propiedad actualizada y notificación generada",
+      property: updated,
+      notification
+    });
   } catch (error) {
-    console.error("Error al actualizar estado o precio:", error.message);
+    console.error("Error al actualizar estado o crear notificación:", error.message);
     res.status(500).json({ message: "No se pudo actualizar la propiedad" });
   }
 };
