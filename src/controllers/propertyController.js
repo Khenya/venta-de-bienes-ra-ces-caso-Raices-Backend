@@ -9,7 +9,8 @@ const {
     create, 
     update,
     createObservation,
-    getObservationsByProperty
+    getObservationsByProperty,
+    getPropertiesByUser
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 

@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const authenticateUser = async (username, password) => {
   try {
     const query = `
-      SELECT users.user_id, users.username, users.password, role.name AS rol
+      SELECT users.user_id, users.username, users.password, role.name AS role
       FROM users
       JOIN role ON users.rol_id = role.role_id
       WHERE LOWER(users.username) = LOWER($1)
@@ -23,15 +23,12 @@ const authenticateUser = async (username, password) => {
     if (!validPassword) {
       throw new Error('Credenciales inválidas');
     }
+    const { user_id, username: dbUsername, role } = user.rows[0];
     const token = jwt.sign(
-      {
-        userId: user.rows[0].user_id,
-        role: user.rows[0].role,
-        username: username 
-      },
+      { userId: user_id, username: dbUsername, role },
       process.env.JWT_SECRET,
       { expiresIn: '4h' }
-    );  
+    );
     return token;
   } catch (error) {
     console.error("Error en la autenticación:", error.message);

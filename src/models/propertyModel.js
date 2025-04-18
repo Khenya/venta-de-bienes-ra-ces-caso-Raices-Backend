@@ -27,11 +27,11 @@ const getAllProperties = async () => {
 
 const getPropertiesByOwner = async (ownerName) => {
   const ownersList = [
-    'Aydee Mercedes Choque de Alvarado',
-    'German Choque Ramos',
-    'Nancy Lidia Choque Ramos',
-    'Jose Luis Choque Ramos',
-    'Javier Yason Choque Ramos'
+    'Aydee Choque',
+    'German Choque',
+    'Nancy Choque',
+    'Jose Choque',
+    'Javier Choque'
   ];
 
   let query = `
@@ -224,6 +224,22 @@ const getObservationsByProperty = async (propertyId) => {
   return rows;
 };
 
+const getPropertiesByUser = async (userId) => {
+  const query = `
+    SELECT
+      p.*,
+      STRING_AGG(o.name, ', ') AS owner_names
+    FROM property p
+    JOIN owner_property op ON p.property_id = op.property_id
+    JOIN owner o ON op.owner_id = o.ci
+    JOIN users u ON o.name = u.username
+    WHERE u.user_id = $1
+    GROUP BY p.property_id;
+  `;
+  const { rows } = await pool.query(query, [userId]);
+  return rows;
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -235,5 +251,6 @@ module.exports = {
   create,
   update, 
   createObservation,
-  getObservationsByProperty
+  getObservationsByProperty,
+  getPropertiesByUser
 };

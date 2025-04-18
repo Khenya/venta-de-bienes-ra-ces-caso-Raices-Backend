@@ -30,8 +30,6 @@ router.get('/owner', authenticateToken, checkPermission('see_property'), (req, r
 
 router.get('/properties', authenticateToken, getAllPropertiesHandler);
 
-router.get('/properties', authenticateToken, getAllPropertiesHandler);
-
 router.get('/properties/:id', authenticateToken, getPropertyByIdHandler);
 
 router.get('/properties/state/:state', authenticateToken, getPropertyByStateHandler);
