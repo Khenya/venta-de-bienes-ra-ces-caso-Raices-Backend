@@ -242,45 +242,6 @@ const getPropertiesByUser = async (userId) => {
   return rows;
 };
 
-const updatePropertyState = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { state } = req.body;
-
-    const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
-    if (!allowedStates.includes(state.toUpperCase())) {
-      return res.status(400).json({ message: "Estado inválido" });
-    }
-    const property = await getPropertyById(id);
-    if (!property) {
-      return res.status(404).json({ message: "Propiedad no encontrada" });
-    }
-
-    const updated = await update(id, { state: state.toUpperCase() });
-
-    const notification = await Notification.create({
-      property_id: property.property_id,
-      manzano: property.manzano,
-      batch: property.batch,
-      state: state.toUpperCase()
-    });
-
-    await NotificationCustomerProperty.linkPropertyToNotification(
-      property.property_id,
-      notification.notification_id
-    );
-
-    res.status(200).json({
-      message: "Propiedad actualizada y notificación generada",
-      property: updated,
-      notification
-    });
-  } catch (error) {
-    console.error("Error al actualizar estado o crear notificación:", error.message);
-    res.status(500).json({ message: "No se pudo actualizar la propiedad" });
-  }
-};
-
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -293,6 +254,5 @@ module.exports = {
   update, 
   createObservation,
   getObservationsByProperty,
-  getPropertiesByUser,
-  updatePropertyState
+  getPropertiesByUser
 };

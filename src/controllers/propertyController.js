@@ -9,13 +9,14 @@ const {
     create, 
     update,
     createObservation,
-    getObservationsByProperty,
-    getPropertiesByUser,
+    getObservationsByProperty
     
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 const Notification = require('../models/notification.model');
 const NotificationCustomerProperty = require('../models/notification_customer_property.model');
+const pool = require('../config/db');
+
 const getAllPropertiesHandler = async (req, res) => {
   try {
     const owner = req.query.owner;
@@ -188,7 +189,6 @@ const createOrUpdateProperty = async (req, res) => {
   }
 };;
 
-
 const updatePropertyState = async (req, res) => {
   try {
     const { id } = req.params;
@@ -208,6 +208,9 @@ const updatePropertyState = async (req, res) => {
     }
 
     const property = await getPropertyById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Propiedad no encontrada" });
+    }
 
     const updated = await update(id, updates);
 
@@ -215,8 +218,28 @@ const updatePropertyState = async (req, res) => {
       property_id: property.property_id,
       manzano: property.manzano,
       batch: property.batch,
-      state: state.toUpperCase()
+      state: updates.state
     });
+
+    const ownersQuery = `
+      SELECT u.user_id, u.username
+      FROM owner_property op
+      JOIN owner o ON op.owner_id = o.ci
+      JOIN users u ON TRIM(LOWER(o.name)) = TRIM(LOWER(u.username))
+      WHERE op.property_id = $1;
+    `;
+    const { rows: owners } = await pool.query(ownersQuery, [property.property_id]);
+    
+    for (const owner of owners) {
+      try {
+        await pool.query(
+          `INSERT INTO user_notifications (user_id, notification_id) VALUES ($1, $2)`,
+          [owner.user_id, notification.notification_id]
+        );
+      } catch (err) {
+        console.error(`Error al insertar notificación para user_id=${owner.user_id}:`, err.message);
+      }
+    }
 
     await NotificationCustomerProperty.linkPropertyToNotification(
       property.property_id,
