@@ -15,7 +15,7 @@ const {
   getObservationsByPropertyId
 } = require('../controllers/propertyController');
 const { createCustomer } = require('../controllers/customerController')
-const { createNotification } = require('../controllers/notificationController')
+const { createNotification, getNotificationsForUser } = require('../controllers/notificationController')
 
 router.get('/profile', authenticateToken, (req, res) => {
   res.json({ message: 'Perfil del usuario', user: req.user });
@@ -54,5 +54,7 @@ router.post('/observation', authenticateToken, createObservationHandler);
 router.get('/properties/:id/observations', getObservationsByPropertyId);
 
 router.post('/notification', authenticateToken, createNotification);
+
+router.get('/notifications', authenticateToken, getNotificationsForUser);
 
 module.exports = router;
