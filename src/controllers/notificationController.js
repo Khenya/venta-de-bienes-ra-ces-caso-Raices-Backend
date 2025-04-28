@@ -57,4 +57,22 @@ const getNotificationsForUser = async (req, res) => {
   }
 };
 
-module.exports = { createNotification, getNotificationsForUser };
+const deleteNotificationForUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    await pool.query(
+      `DELETE FROM user_notifications WHERE user_id = $1 AND notification_id = $2`,
+      [userId, id]
+    );
+
+    res.status(200).json({ message: "Notificación eliminada para el usuario" });
+  } catch (error) {
+    console.error("Error al eliminar notificación:", error.message);
+    res.status(500).json({ message: "Error al eliminar notificación" });
+  }
+};
+
+
+module.exports = { createNotification, getNotificationsForUser, deleteNotificationForUser };
