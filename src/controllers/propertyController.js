@@ -16,6 +16,7 @@ const Owner = require('../models/owner.model');
 const Notification = require('../models/notification.model');
 const NotificationCustomerProperty = require('../models/notification_customer_property.model');
 const pool = require('../config/db');
+const { emitNotification } = require('../utils/sseManager');
 
 const getAllPropertiesHandler = async (req, res) => {
   try {
@@ -187,7 +188,7 @@ const createOrUpdateProperty = async (req, res) => {
     console.error("Error al guardar propiedad:", error.message);
     res.status(500).json({ message: "No se pudo guardar la propiedad" });
   }
-};;
+};
 
 const updatePropertyState = async (req, res) => {
   try {
@@ -245,6 +246,8 @@ const updatePropertyState = async (req, res) => {
       property.property_id,
       notification.notification_id
     );
+
+    emitNotification(notification);
 
     res.status(200).json({
       message: "Propiedad actualizada y notificación generada",

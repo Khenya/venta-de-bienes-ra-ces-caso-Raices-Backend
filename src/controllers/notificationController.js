@@ -2,6 +2,7 @@ const Notification = require('../models/notification.model');
 const NotificationCustomerProperty = require('../models/notification_customer_property.model');
 const Property = require('../models/propertyModel');
 const pool = require('../config/db');
+const { addClient, removeClient } = require('../utils/sseManager');
 
 const createNotification = async (req, res) => {
   try {
@@ -27,6 +28,13 @@ const createNotification = async (req, res) => {
       property_id,
       notification.notification_id
     );
+
+    clients.forEach(client => {
+      client.res.write(`data: ${JSON.stringify({
+        type: "NEW_NOTIFICATION",
+        payload: notification
+      })}\n\n`);
+    });
 
     res.status(201).json({ message: "Notificación creada", notification });
   } catch (error) {
@@ -74,5 +82,25 @@ const deleteNotificationForUser = async (req, res) => {
   }
 };
 
+const eventsHandler = (req, res) => {
+  res.set({
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+    "Access-Control-Allow-Origin": "*"
+  });
+  res.flushHeaders();
 
-module.exports = { createNotification, getNotificationsForUser, deleteNotificationForUser };
+  const clientId = Date.now();
+  const newClient = {
+    id: clientId,
+    res
+  };
+  addClient(newClient);
+
+  req.on("close", () => {
+    removeClient(clientId);
+  });
+};
+
+module.exports = { createNotification, getNotificationsForUser, deleteNotificationForUser, eventsHandler };

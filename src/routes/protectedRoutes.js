@@ -17,7 +17,9 @@ const {
 const { createCustomer } = require('../controllers/customerController')
 const { createNotification, 
   getNotificationsForUser, 
-  deleteNotificationForUser } = require('../controllers/notificationController')
+  deleteNotificationForUser,
+  eventsHandler 
+} = require('../controllers/notificationController')
 
 router.get('/profile', authenticateToken, (req, res) => {
   res.json({ message: 'Perfil del usuario', user: req.user });
@@ -60,5 +62,9 @@ router.post('/notification', authenticateToken, createNotification);
 router.get('/notifications', authenticateToken, getNotificationsForUser);
 
 router.delete('/notifications/:id', authenticateToken, deleteNotificationForUser);
+
+router.post('/notification', authenticateToken, createNotification);
+
+router.get('/notifications/stream', eventsHandler);
 
 module.exports = router;
