@@ -7,32 +7,42 @@ const login = async (req, res) => {
     const token = await authenticateUser(username, password);
 
     res.cookie('jwt', token, {
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production', 
-      sameSite: 'Strict', 
-      maxAge: 4 * 60 * 60 * 1000 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 4 * 60 * 60 * 1000
     });
 
-    res.status(200).json({ message: 'Login successful', token });
+    res.status(200).json({ 
+      message: 'Login successful', 
+      token 
+    });
 
   } catch (error) {
     res.status(401).json({ error: error.message });
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    const token = req.cookies.jwt || req.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
 
-const logout = (req, res) => {
-  const token = req.cookies.jwt;
+    addToBlacklist(token);
+    
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict'
+    });
 
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided.' });
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error during logout' });
   }
-
-  addToBlacklist(token); 
-
-  res.clearCookie('jwt'); 
-  res.status(200).json({ message: 'Logout successful' });
 };
-
 
 module.exports = { login, logout };
