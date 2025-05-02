@@ -51,12 +51,16 @@ const getPropertiesByOwner = async (ownerName) => {
     query += `
       WHERE UPPER(o.name) = ANY ($1::text[])
       GROUP BY p.property_id
+       ORDER BY
+        p.property_id ASC;
     `;
     values = [ownersList];
   } else {
     query += `
       WHERE UPPER(o.name) = $1
       GROUP BY p.property_id
+       ORDER BY
+        p.property_id ASC;
     `;
     values = [ownerName.toUpperCase()];
   }
