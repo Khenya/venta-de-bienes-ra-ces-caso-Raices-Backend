@@ -1,5 +1,5 @@
 const Users = require('../models/users.model');
-const { hashPassword } = require('../utils/hashPassword'); 
+const hashPassword = require('../utils/hashPassword'); 
 
 const getAllUsers = async (req, res) => {
   try {
@@ -28,7 +28,7 @@ const updateUser = async (req, res) => {
   try {
     let hashedPassword;
     if (password) {
-      hashedPassword = await hashPassword(password); // Hashear la contraseña si se proporciona
+      hashedPassword = await hashPassword(password); 
     }
 
     const updatedUser = await Users.update(id, username, hashedPassword, rol_id);
@@ -38,10 +38,22 @@ const updateUser = async (req, res) => {
   }
 };
 
-// Eliminar un usuario
+const createUser = async (req, res) => {
+  try {
+    const { username, password, role_id } = req.body;
+
+    const userData = { username, password, role_id };
+
+    const newUser = await Users.create(userData);
+    res.status(200).json({ message: 'Usuario creado correctamente.', user: newUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 const deleteUser = async (req, res) => {
   try {
-    const deletedUser = await Users.delete(req.params.id);
+    const deletedUser = await Users.delete(req.params.id); 
     res.status(200).json({ message: 'Usuario eliminado correctamente.', user: deletedUser });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -51,6 +63,7 @@ const deleteUser = async (req, res) => {
 module.exports = {
   getAllUsers,
   getUserById,
+  createUser,
   updateUser,
   deleteUser,
 };
