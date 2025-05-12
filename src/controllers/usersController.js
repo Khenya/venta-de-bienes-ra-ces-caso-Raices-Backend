@@ -23,16 +23,21 @@ const getUserById = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { username, password, rol_id } = req.body;
+  const { password } = req.body;
 
   try {
-    let hashedPassword;
-    if (password) {
-      hashedPassword = await hashPassword(password); 
+    if (!password) {
+      return res.status(400).json({ error: "La contraseña es requerida" });
     }
 
-    const updatedUser = await Users.update(id, username, hashedPassword, rol_id);
-    res.status(200).json({ message: 'Usuario actualizado correctamente.', user: updatedUser });
+    const user = await Users.getById(id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    const updatedUser = await Users.updatePasswordById(id, password);
+
+    res.status(200).json({ message: 'Contraseña actualizada correctamente.', user: updatedUser });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -40,14 +45,31 @@ const updateUser = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { username, password, role_id } = req.body;
+    const { username, password, confirmPassword, role_id } = req.body;
+
+    if (!username || !password || !role_id) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ error: 'Las contraseñas no coinciden' });
+    }
 
     const userData = { username, password, role_id };
 
     const newUser = await Users.create(userData);
-    res.status(200).json({ message: 'Usuario creado correctamente.', user: newUser });
+    
+    const { password: _, ...userWithoutPassword } = newUser;
+    
+    res.status(201).json({ 
+      message: 'Usuario creado correctamente.',
+      user: userWithoutPassword 
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
 
