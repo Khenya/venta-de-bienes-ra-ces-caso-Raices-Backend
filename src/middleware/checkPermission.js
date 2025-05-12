@@ -7,7 +7,7 @@ const checkPermission = (requiredPermission) => {
     try {
       const query = `
         SELECT p.name
-        FROM permissions p
+        FROM permission p
         JOIN permissions_roles pr ON p.id = pr.permissions_id
         JOIN users u ON pr.rol_id = u.rol_id
         WHERE u.id = $1

@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
 const protectedRoutes = require('./routes/protectedRoutes');
 const usersRoutes = require('./routes/usersRoutes');
+const rolesRouter = require('./routes/rolesRoutes');
 
 const app = express();
 
@@ -31,6 +32,7 @@ if (NODE_ENV === 'development' || NODE_ENV === 'local') {
 app.use('/api/auth', authRoutes);
 app.use('/api/protected', protectedRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/roles', rolesRouter);
 
 app.use((err, req, res, next) => {
   console.error(err.stack); 
