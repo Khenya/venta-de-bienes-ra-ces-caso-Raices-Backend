@@ -12,7 +12,8 @@ const {
   createOrUpdateProperty,
   updatePropertyState, 
   createObservationHandler,
-  getObservationsByPropertyId
+  getObservationsByPropertyId,
+  getPropertyCountByStates
 } = require('../controllers/propertyController');
 const { createCustomer } = require('../controllers/customerController')
 const { createNotification, 
@@ -50,6 +51,8 @@ router.post('/property', authenticateToken, createOrUpdateProperty);
 router.put('/property/:id', authenticateToken, createOrUpdateProperty);
 
 router.patch('/property/:id/state', authenticateToken, updatePropertyState);
+
+router.get('/property-stats', authenticateToken, getPropertyCountByStates);
 
 router.post('/customer', authenticateToken, createCustomer);
 

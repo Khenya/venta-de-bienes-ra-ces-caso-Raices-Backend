@@ -1,6 +1,4 @@
 const pool = require('../config/db');
-const Notification = require('../models/notification.model');
-const NotificationCustomerProperty = require('../models/notification_customer_property.model');
 
 const getAllProperties = async () => {
   try {
@@ -246,6 +244,16 @@ const getPropertiesByUser = async (userId) => {
   return rows;
 };
 
+const getPropertyCountByState = async () => {
+  const query = `
+    SELECT state, COUNT(*) AS count
+    FROM property
+    GROUP BY state;
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -258,5 +266,6 @@ module.exports = {
   update, 
   createObservation,
   getObservationsByProperty,
-  getPropertiesByUser
+  getPropertiesByUser,
+  getPropertyCountByState
 };
