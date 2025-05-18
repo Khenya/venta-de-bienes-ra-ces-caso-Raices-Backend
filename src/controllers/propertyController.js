@@ -151,17 +151,21 @@ const createOrUpdateProperty = async (req, res) => {
       testimony_numbre,
       location,
       property_number,
-      owner_name
+      owner_names 
     } = req.body;
 
-    if (!manzano || !batch || !state || !location || !owner_name) {
+    if (!manzano || !batch || !state || !location || !owner_names || !Array.isArray(owner_names)) {
       return res.status(400).json({
-        message: "Campos obligatorios: manzano, batch, state, location, owner_name"
+        message: "Campos obligatorios: manzano, batch, state, location, owner_names (array)"
       });
     }
-    const owner = await Owner.findByName(owner_name);
-    if (!owner) {
-      return res.status(404).json({ message: "El propietario no existe" });
+
+    const owners = await Promise.all(
+      owner_names.map(name => Owner.findByName(name))
+    );
+
+    if (owners.some(owner => !owner)) {
+      return res.status(404).json({ message: "Uno o más propietarios no existen" });
     }
 
     let property;
@@ -176,12 +180,13 @@ const createOrUpdateProperty = async (req, res) => {
         folio_number, testimony_numbre, location, property_number
       });
 
-      await Owner.linkToProperty(owner.ci, property.property_id);
-
+      for (const owner of owners) {
+        await Owner.linkToProperty(owner.ci, property.property_id);
+      }
     }
 
     res.status(200).json({
-      message: id ? "Propiedad actualizada" : "Propiedad creada y asociada al propietario",
+      message: id ? "Propiedad actualizada" : "Propiedad creada y asociada a los propietarios",
       property
     });
   } catch (error) {
