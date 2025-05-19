@@ -10,7 +10,9 @@ const {
     update,
     createObservation,
     getObservationsByProperty,
-    getPropertyCountByState
+    getPropertyCountByState,
+    getPropertyCounts,
+    getPropertyCountByOwner
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 const Notification = require('../models/notification.model');
@@ -205,6 +207,26 @@ const getPropertyCountByStates = async (req, res) => {
   }
 };
 
+const getPropertyCountsHandler = async (req, res) => {
+  try {
+    const data = await getPropertyCounts();
+    res.json(data);
+  } catch (err) {
+    console.error("Error al contar propiedades:", err.message);
+    res.status(500).json({ error: "Error al obtener estadísticas" });
+  }
+};
+
+const getPropertyCountByOwnerHandler = async (req, res) => {
+  try {
+    const data = await getPropertyCountByOwner();
+    res.json(data);
+  } catch (err) {
+    console.error("Error al obtener conteo por dueño:", err.message);
+    res.status(500).json({ error: "Error al obtener datos por dueño" });
+  }
+};
+
 const updatePropertyState = async (req, res) => {
   try {
     const { id } = req.params;
@@ -337,5 +359,7 @@ module.exports = {
     updatePropertyState, 
     createObservationHandler,
     getObservationsByPropertyId,
-    getPropertyCountByStates
+    getPropertyCountByStates,
+    getPropertyCountsHandler,
+    getPropertyCountByOwnerHandler
 };

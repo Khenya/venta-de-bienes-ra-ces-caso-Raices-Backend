@@ -254,6 +254,33 @@ const getPropertyCountByState = async () => {
   return rows;
 };
 
+const getPropertyCounts = async () => {
+  const query = `
+    SELECT
+      COUNT(*) FILTER (WHERE state = 'LIBRE') AS libres,
+      COUNT(*) FILTER (WHERE state = 'PAGANDO') AS pagando,
+      COUNT(*) FILTER (WHERE state = 'CANCELADO') AS cancelado,
+      COUNT(*) AS total
+    FROM property;
+  `;
+  const { rows } = await pool.query(query);
+  return rows[0];
+};
+
+const getPropertyCountByOwner = async () => {
+  const query = `
+    SELECT
+      o.name AS owner,
+      COUNT(op.property_id) AS count
+    FROM owner o
+    JOIN owner_property op ON o.ci = op.owner_id
+    GROUP BY o.name
+    ORDER BY count DESC;
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
@@ -267,5 +294,7 @@ module.exports = {
   createObservation,
   getObservationsByProperty,
   getPropertiesByUser,
-  getPropertyCountByState
+  getPropertyCountByState,
+  getPropertyCounts,
+  getPropertyCountByOwner
 };
