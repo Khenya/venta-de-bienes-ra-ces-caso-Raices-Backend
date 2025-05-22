@@ -1,18 +1,18 @@
-const { 
-    getAllProperties,
-    getPropertiesByOwner,
-    getPropertyById,
-    getPropertyByState,
-    getPropertyByPrice,
-    getPropertyByManzano, 
-    getPropertyByBatch, 
-    create, 
-    update,
-    createObservation,
-    getObservationsByProperty,
-    getPropertyCountByState,
-    getPropertyCounts,
-    getPropertyCountByOwner
+const {
+  getAllProperties,
+  getPropertiesByOwner,
+  getPropertyById,
+  getPropertyByState,
+  getPropertyByPrice,
+  getPropertyByManzano,
+  getPropertyByBatch,
+  create,
+  update,
+  createObservation,
+  getObservationsByProperty,
+  getPropertyCountByState,
+  getPropertyCounts,
+  getPropertyCountByOwner
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 const Notification = require('../models/notification.model');
@@ -77,67 +77,67 @@ const getPropertyByIdHandler = async (req, res) => {
 };
 
 const getPropertyByStateHandler = async (req, res) => {
-    try {
-      const { state } = req.params;
-      const properties = await getPropertyByState(state);
-  
-      if (properties.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron propiedades con ese estado' });
-      }
-  
-      res.json(properties);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+  try {
+    const { state } = req.params;
+    const properties = await getPropertyByState(state);
+
+    if (properties.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron propiedades con ese estado' });
     }
+
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 const getPropertyByPriceHandler = async (req, res) => {
-    try {
-      const { price } = req.params;
-  
-      const properties = await getPropertyByPrice(price);
-  
-      if (properties.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron propiedades dentro de este rango de precio' });
-      }
-  
-      res.json(properties);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+  try {
+    const { price } = req.params;
+
+    const properties = await getPropertyByPrice(price);
+
+    if (properties.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron propiedades dentro de este rango de precio' });
     }
+
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 const getPropertyByManzanoHandler = async (req, res) => {
-    try {
-      const { manzano } = req.params;
-  
-      const properties = await getPropertyByManzano(manzano);
-  
-      if (properties.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron propiedades en ese manzano' });
-      }
-  
-      res.json(properties);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+  try {
+    const { manzano } = req.params;
+
+    const properties = await getPropertyByManzano(manzano);
+
+    if (properties.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron propiedades en ese manzano' });
     }
+
+    res.json(properties);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 const getPropertyByBatchHandler = async (req, res) => {
-    try {
-      const { batch } = req.params;
-  
-      const properties = await getPropertyByBatch(batch);
-  
-      if (properties.length === 0) {
-        return res.status(404).json({ message: 'No se encontraron propiedades en ese lote' });
-      }
-  
-      res.json(properties);
-    } catch (error) {
-      console.error('Error al obtener propiedades por lote:', error.message);
-      res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
+  try {
+    const { batch } = req.params;
+
+    const properties = await getPropertyByBatch(batch);
+
+    if (properties.length === 0) {
+      return res.status(404).json({ message: 'No se encontraron propiedades en ese lote' });
     }
+
+    res.json(properties);
+  } catch (error) {
+    console.error('Error al obtener propiedades por lote:', error.message);
+    res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
+  }
 };
 
 const createOrUpdateProperty = async (req, res) => {
@@ -153,7 +153,7 @@ const createOrUpdateProperty = async (req, res) => {
       testimony_numbre,
       location,
       property_number,
-      owner_names 
+      owner_names
     } = req.body;
 
     if (!manzano || !batch || !state || !location || !owner_names || !Array.isArray(owner_names)) {
@@ -230,7 +230,7 @@ const getPropertyCountByOwnerHandler = async (req, res) => {
 const updatePropertyState = async (req, res) => {
   try {
     const { id } = req.params;
-    let { state, price } = req.body;
+    let { state, price, property_number, folio_number, testimony_numbre } = req.body;
 
     const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
     if (state && !allowedStates.includes(state.toUpperCase())) {
@@ -240,6 +240,9 @@ const updatePropertyState = async (req, res) => {
     const updates = {};
     if (state) updates.state = state.toUpperCase();
     if (price !== undefined && price !== null) updates.price = price;
+    if (property_number !== undefined) updates.property_number = property_number;
+    if (folio_number !== undefined) updates.folio_number = folio_number;
+    if (testimony_numbre !== undefined) updates.testimony_numbre = testimony_numbre;
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: "Nada para actualizar" });
@@ -267,7 +270,7 @@ const updatePropertyState = async (req, res) => {
       WHERE op.property_id = $1;
     `;
     const { rows: owners } = await pool.query(ownersQuery, [property.property_id]);
-    
+
     for (const owner of owners) {
       try {
         await pool.query(
@@ -304,17 +307,17 @@ const createObservationHandler = async (req, res) => {
     }
 
     const { property_id, observacion } = req.body;
-    
+
     if (!property_id || !observacion) {
-      return res.status(400).json({ 
-        message: 'Se requieren property_id y observacion' 
+      return res.status(400).json({
+        message: 'Se requieren property_id y observacion'
       });
     }
 
     const observacionData = {
       property_id,
       observacion,
-      date: new Date() 
+      date: new Date()
     };
 
     const newObservation = await createObservation(observacionData);
@@ -325,9 +328,9 @@ const createObservationHandler = async (req, res) => {
 
   } catch (error) {
     console.error('Error al crear observación:', error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Error al crear observación',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -348,18 +351,18 @@ const getObservationsByPropertyId = async (req, res) => {
 };
 
 module.exports = {
-    getAllPropertiesHandler,
-    getPropertiesByOwnerNameHandler,
-    getPropertyByIdHandler,
-    getPropertyByStateHandler,
-    getPropertyByPriceHandler,
-    getPropertyByManzanoHandler, 
-    getPropertyByBatchHandler, 
-    createOrUpdateProperty,
-    updatePropertyState, 
-    createObservationHandler,
-    getObservationsByPropertyId,
-    getPropertyCountByStates,
-    getPropertyCountsHandler,
-    getPropertyCountByOwnerHandler
+  getAllPropertiesHandler,
+  getPropertiesByOwnerNameHandler,
+  getPropertyByIdHandler,
+  getPropertyByStateHandler,
+  getPropertyByPriceHandler,
+  getPropertyByManzanoHandler,
+  getPropertyByBatchHandler,
+  createOrUpdateProperty,
+  updatePropertyState,
+  createObservationHandler,
+  getObservationsByPropertyId,
+  getPropertyCountByStates,
+  getPropertyCountsHandler,
+  getPropertyCountByOwnerHandler
 };
