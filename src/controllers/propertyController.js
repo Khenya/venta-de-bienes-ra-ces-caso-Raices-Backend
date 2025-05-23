@@ -2,10 +2,6 @@ const {
   getAllProperties,
   getPropertiesByOwner,
   getPropertyById,
-  getPropertyByState,
-  getPropertyByPrice,
-  getPropertyByManzano,
-  getPropertyByBatch,
   create,
   update,
   createObservation,
@@ -74,70 +70,6 @@ const getPropertyByIdHandler = async (req, res) => {
     res.json(property);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener el inmueble' });
-  }
-};
-
-const getPropertyByStateHandler = async (req, res) => {
-  try {
-    const { state } = req.params;
-    const properties = await getPropertyByState(state);
-
-    if (properties.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron propiedades con ese estado' });
-    }
-
-    res.json(properties);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getPropertyByPriceHandler = async (req, res) => {
-  try {
-    const { price } = req.params;
-
-    const properties = await getPropertyByPrice(price);
-
-    if (properties.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron propiedades dentro de este rango de precio' });
-    }
-
-    res.json(properties);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getPropertyByManzanoHandler = async (req, res) => {
-  try {
-    const { manzano } = req.params;
-
-    const properties = await getPropertyByManzano(manzano);
-
-    if (properties.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron propiedades en ese manzano' });
-    }
-
-    res.json(properties);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getPropertyByBatchHandler = async (req, res) => {
-  try {
-    const { batch } = req.params;
-
-    const properties = await getPropertyByBatch(batch);
-
-    if (properties.length === 0) {
-      return res.status(404).json({ message: 'No se encontraron propiedades en ese lote' });
-    }
-
-    res.json(properties);
-  } catch (error) {
-    console.error('Error al obtener propiedades por lote:', error.message);
-    res.status(500).json({ message: 'No se pudieron obtener las propiedades' });
   }
 };
 
@@ -371,10 +303,6 @@ module.exports = {
   getAllPropertiesHandler,
   getPropertiesByOwnerNameHandler,
   getPropertyByIdHandler,
-  getPropertyByStateHandler,
-  getPropertyByPriceHandler,
-  getPropertyByManzanoHandler,
-  getPropertyByBatchHandler,
   createOrUpdateProperty,
   updatePropertyState,
   createObservationHandler,

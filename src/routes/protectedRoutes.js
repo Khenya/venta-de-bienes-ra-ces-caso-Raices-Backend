@@ -5,10 +5,6 @@ const checkPermission = require('../middleware/checkPermission');
 const {
   getAllPropertiesHandler,
   getPropertyByIdHandler,
-  getPropertyByStateHandler,
-  getPropertyByPriceHandler,
-  getPropertyByManzanoHandler, 
-  getPropertyByBatchHandler,
   getFilteredPropertiesHandler,
   createOrUpdateProperty,
   updatePropertyState, 
@@ -39,12 +35,8 @@ router.get('/owner', authenticateToken, checkPermission('see_property'), (req, r
 });
 
 // Propiedades
-router.get('/properties/filter', authenticateToken, getFilteredPropertiesHandler); // ⚠️ DEBE IR PRIMERO
+router.get('/properties/filter', authenticateToken, getFilteredPropertiesHandler); 
 router.get('/properties', authenticateToken, getAllPropertiesHandler);
-router.get('/properties/state/:state', authenticateToken, getPropertyByStateHandler);
-router.get('/properties/price/:price', authenticateToken, getPropertyByPriceHandler);
-router.get('/properties/manzano/:manzano', authenticateToken, getPropertyByManzanoHandler);
-router.get('/properties/batch/:batch', authenticateToken, getPropertyByBatchHandler);
 router.get('/properties/:id', authenticateToken, getPropertyByIdHandler);
 
 router.post('/property', authenticateToken, createOrUpdateProperty);
