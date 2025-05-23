@@ -21,7 +21,7 @@ const getAllProperties = async () => {
     const { rows } = await pool.query(query);
     return rows;
   } catch (error) {
-    throw new Error('Error al obtener las propiedades'); 
+    throw new Error('Error al obtener las propiedades');
   }
 };
 
@@ -114,7 +114,7 @@ const getPropertyByPrice = async (price) => {
     throw new Error('No se pudieron obtener las propiedades');
   }
 };
-  
+
 const getPropertyByState = async (state) => {
   try {
     if (!state) {
@@ -163,7 +163,7 @@ const getPropertyByManzano = async (manzano) => {
     console.error('Error al obtener propiedades por manzano:', error.message);
     throw new Error('No se pudieron obtener las propiedades');
   }
-};   
+};
 
 const getPropertyByBatch = async (batch) => {
   try {
@@ -205,7 +205,7 @@ const update = async (id, propertyData) => {
   return rows[0];
 };
 
-const createObservation = async(observacionData) => {
+const createObservation = async (observacionData) => {
   const query = `
     INSERT INTO observation (property_id, observacion, date)
     VALUES ($1, $2, $3) RETURNING*;
@@ -223,7 +223,7 @@ const getObservationsByProperty = async (propertyId) => {
     FROM observation 
     WHERE property_id = $1
     ORDER BY date DESC`;
-  
+
   const { rows } = await pool.query(query, [propertyId]);
   return rows;
 };
@@ -281,20 +281,63 @@ const getPropertyCountByOwner = async () => {
   return rows;
 };
 
+const getFilteredProperties = async ({ owner, state, price, manzano, batch }) => {
+  let query = `
+    SELECT 
+      p.*, 
+      STRING_AGG(o.name, ', ') AS owner_names,
+      STRING_AGG(o.ci::text, ', ') AS owner_cis
+    FROM property p
+    INNER JOIN owner_property op ON p.property_id = op.property_id
+    INNER JOIN owner o ON op.owner_id = o.ci
+    WHERE 1=1
+  `;
+  const values = [];
+  let i = 1;
+
+  if (owner) {
+    query += ` AND UPPER(o.name) = UPPER($${i++})`;
+    values.push(owner);
+  }
+  if (state) {
+    query += ` AND LOWER(p.state) = LOWER($${i++})`;
+    values.push(state);
+  }
+  if (price) {
+    query += ` AND p.price <= $${i++}`;
+    values.push(price);
+  }
+  if (manzano) {
+    query += ` AND p.manzano = $${i++}`;
+    values.push(manzano);
+  }
+  if (batch) {
+    query += ` AND p.batch = $${i++}`;
+    values.push(batch);
+  }
+
+  query += ` GROUP BY p.property_id ORDER BY p.property_id ASC`;
+
+  const { rows } = await pool.query(query, values);
+
+  return rows;
+};
+
 module.exports = {
   getAllProperties,
   getPropertiesByOwner,
   getPropertyById,
   getPropertyByState,
   getPropertyByPrice,
-  getPropertyByManzano, 
+  getPropertyByManzano,
   getPropertyByBatch,
   create,
-  update, 
+  update,
   createObservation,
   getObservationsByProperty,
   getPropertiesByUser,
   getPropertyCountByState,
   getPropertyCounts,
-  getPropertyCountByOwner
+  getPropertyCountByOwner,
+  getFilteredProperties
 };

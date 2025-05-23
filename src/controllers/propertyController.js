@@ -12,7 +12,8 @@ const {
   getObservationsByProperty,
   getPropertyCountByState,
   getPropertyCounts,
-  getPropertyCountByOwner
+  getPropertyCountByOwner,
+  getFilteredProperties
 } = require('../models/propertyModel');
 const Owner = require('../models/owner.model');
 const Notification = require('../models/notification.model');
@@ -350,6 +351,22 @@ const getObservationsByPropertyId = async (req, res) => {
   }
 };
 
+const getFilteredPropertiesHandler = async (req, res) => {
+  try {
+    const filters = req.query;
+    const results = await getFilteredProperties(filters);
+
+    if (!results.length) {
+      return res.status(404).json({ message: 'No se encontraron propiedades' });
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error('Error al filtrar propiedades:', error.message);
+    res.status(500).json({ message: 'Error al filtrar propiedades' });
+  }
+};
+
 module.exports = {
   getAllPropertiesHandler,
   getPropertiesByOwnerNameHandler,
@@ -364,5 +381,6 @@ module.exports = {
   getObservationsByPropertyId,
   getPropertyCountByStates,
   getPropertyCountsHandler,
-  getPropertyCountByOwnerHandler
+  getPropertyCountByOwnerHandler,
+  getFilteredPropertiesHandler
 };
