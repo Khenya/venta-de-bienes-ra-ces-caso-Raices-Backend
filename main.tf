@@ -60,7 +60,7 @@ resource "aws_instance" "nodejs_server" {
       type        = "ssh"
       host        = self.public_ip
       user        = "ec2-user"
-      private_key = file("isc-system-backend-ssh")
+      private_key = file("raices-system-backend-ssh")
     }
 
     inline = [
@@ -68,7 +68,7 @@ resource "aws_instance" "nodejs_server" {
       "sudo yum install -y git",
       "curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -",
       "sudo yum install -y nodejs",
-      "git clone https://github.com/Khenya/ISC-System-UPB-Core.git /home/ec2-user/app",
+      "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
       "cd /home/ec2-user/app",
       "npm install",
       "echo '#!/bin/bash' > /home/ec2-user/start_app.sh",
