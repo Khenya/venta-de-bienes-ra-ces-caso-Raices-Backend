@@ -10,7 +10,7 @@ variable "public_key" {
 
 # Security Group
 resource "aws_security_group" "nodejs_sg" {
-  name        = "nodejs-security-group"
+  name        = "backend-security-group"
   description = "Security group con puerto 8000 abierto para Node.js"
 
   ingress {
