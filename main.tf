@@ -2,6 +2,12 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Variable para clave pública
+variable "public_key" {
+  description = "SSH public key for EC2 access"
+  type        = string
+}
+
 # Security Group
 resource "aws_security_group" "nodejs_sg" {
   name        = "nodejs-security-group"
@@ -30,18 +36,18 @@ resource "aws_security_group" "nodejs_sg" {
   }
 }
 
-# Key Pair
+# Key Pair usando variable
 resource "aws_key_pair" "nodejs-ssh" {
   key_name   = "nodejs-ssh"
-  public_key = file("id_rsa.pub")
+  public_key = var.public_key
 }
 
 # EC2 Instance
 resource "aws_instance" "nodejs_server" {
-  ami           = "ami-01816d07b1128cd2d" # Amazon Linux 2
-  instance_type = "t2.micro"
-  key_name      = aws_key_pair.nodejs-ssh.key_name
-  vpc_security_group_ids = [aws_security_group.nodejs_sg.id]
+  ami                         = "ami-01816d07b1128cd2d" # Amazon Linux 2
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.nodejs-ssh.key_name
+  vpc_security_group_ids      = [aws_security_group.nodejs_sg.id]
 
   tags = {
     Name = "NodeJS-App-Server"
@@ -54,7 +60,7 @@ resource "aws_instance" "nodejs_server" {
       type        = "ssh"
       host        = self.public_ip
       user        = "ec2-user"
-      private_key = file("id_rsa")
+      private_key = file("isc-system-backend-ssh")
     }
 
     inline = [
@@ -76,10 +82,15 @@ resource "aws_instance" "nodejs_server" {
 
 # Elastic IP
 resource "aws_eip" "nodejs_eip" {
-  vpc = true
+  domain = "vpc"
 }
 
 resource "aws_eip_association" "nodejs_eip_association" {
   instance_id   = aws_instance.nodejs_server.id
   allocation_id = aws_eip.nodejs_eip.id
+}
+
+# Output para IP pública (usado por GitHub Actions)
+output "ec2_public_ip" {
+  value = aws_instance.nodejs_server.public_ip
 }

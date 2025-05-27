@@ -4,3 +4,8 @@ node_modules/
 .env
 
 contraseñas.txt
+
+.tf
+
+# SSH keys
+id_rsa
