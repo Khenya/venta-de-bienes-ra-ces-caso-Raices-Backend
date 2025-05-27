@@ -5,7 +5,8 @@ node_modules/
 
 contraseñas.txt
 
-.tf
+.terraform/
+.terraform.*
 
 # SSH keys
 id_rsa

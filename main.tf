@@ -9,23 +9,45 @@ variable "public_key" {
 
 resource "aws_security_group" "nodejs_sg" {
   name        = "backend-security-group"
-  description = "Security group con puerto 8000 abierto para Node.js"
+  description = "Security group for Node.js backend application"
 
+  # Regla SSH
   ingress {
+    description = "SSH access"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Regla HTTP (puerto 80)
   ingress {
-    description = "Allow HTTP on port 8000"
+    description = "HTTP access"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Regla para Node.js (puerto 3001)
+  ingress {
+    description = "Node.js App port"
+    from_port   = 3001
+    to_port     = 3001
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Regla para puerto 8000
+  ingress {
+    description = "Alternative Node.js port"
     from_port   = 8000
     to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Regla de salida (egress) - permite todo el tráfico de salida
   egress {
     from_port   = 0
     to_port     = 0
@@ -87,4 +109,8 @@ resource "aws_eip_association" "nodejs_eip_association" {
 
 output "ec2_public_ip" {
   value = aws_instance.nodejs_server.public_ip
+}
+
+output "application_url" {
+  value = "http://${aws_eip.nodejs_eip.public_ip}:3001"
 }
