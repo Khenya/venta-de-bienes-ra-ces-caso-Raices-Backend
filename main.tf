@@ -2,13 +2,11 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# Variable para clave pública
 variable "public_key" {
   description = "SSH public key for EC2 access"
   type        = string
 }
 
-# Security Group
 resource "aws_security_group" "nodejs_sg" {
   name        = "backend-security-group"
   description = "Security group con puerto 8000 abierto para Node.js"
@@ -17,7 +15,7 @@ resource "aws_security_group" "nodejs_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -25,7 +23,7 @@ resource "aws_security_group" "nodejs_sg" {
     from_port   = 8000
     to_port     = 8000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] 
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -36,15 +34,13 @@ resource "aws_security_group" "nodejs_sg" {
   }
 }
 
-# Key Pair usando variable
 resource "aws_key_pair" "nodejs-ssh" {
   key_name   = "nodejs-ssh"
   public_key = var.public_key
 }
 
-# EC2 Instance
 resource "aws_instance" "nodejs_server" {
-  ami                         = "ami-01816d07b1128cd2d" # Amazon Linux 2
+  ami                         = "ami-01816d07b1128cd2d"
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.nodejs-ssh.key_name
   vpc_security_group_ids      = [aws_security_group.nodejs_sg.id]
@@ -60,7 +56,7 @@ resource "aws_instance" "nodejs_server" {
       type        = "ssh"
       host        = self.public_ip
       user        = "ec2-user"
-      private_key = file("raices-system-backend-ssh")
+      private_key = file("${path.module}/id_rsa")
     }
 
     inline = [
@@ -80,7 +76,6 @@ resource "aws_instance" "nodejs_server" {
   }
 }
 
-# Elastic IP
 resource "aws_eip" "nodejs_eip" {
   domain = "vpc"
 }
@@ -90,7 +85,6 @@ resource "aws_eip_association" "nodejs_eip_association" {
   allocation_id = aws_eip.nodejs_eip.id
 }
 
-# Output para IP pública (usado por GitHub Actions)
 output "ec2_public_ip" {
   value = aws_instance.nodejs_server.public_ip
 }

@@ -17,13 +17,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate SSH Key Pair
-        id: generate_ssh
+      - name: Save SSH Private Key
         run: |
-          ssh-keygen -t rsa -b 4096 -C "github-actions" -f raices-system-backend-ssh -N ""
-          echo "PUBLIC_KEY<<EOF" >> $GITHUB_OUTPUT
-          cat raices-system-backend-ssh.pub >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "${{ secrets.PRIVATE_KEY }}" > id_rsa
+          chmod 600 id_rsa
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -39,7 +36,7 @@ jobs:
 
       - name: Create Terraform vars file
         run: |
-          echo 'public_key = "${{ steps.generate_ssh.outputs.PUBLIC_KEY }}"' > terraform.auto.tfvars
+          echo 'public_key = "${{ secrets.PUBLIC_KEY }}"' > terraform.auto.tfvars
 
       - name: Initialize Terraform
         run: terraform init
@@ -50,21 +47,14 @@ jobs:
       - name: Terraform Apply
         run: terraform apply -auto-approve
 
-      - name: Save Private Key
-        uses: actions/upload-artifact@v4
-        with:
-          name: ssh-private-key
-          path: raices-system-backend-ssh
-
       - name: Copy backend files and .env to EC2
         run: |
-          chmod 600 raices-system-backend-ssh
           EC2_IP=$(terraform output -raw ec2_public_ip)
           echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          scp -i raices-system-backend-ssh -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/
-          scp -i raices-system-backend-ssh -o StrictHostKeyChecking=no -r ./backend ec2-user@$EC2_IP:/home/ec2-user/
+          scp -i id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/
+          scp -i id_rsa -o StrictHostKeyChecking=no -r ./backend ec2-user@$EC2_IP:/home/ec2-user/
 
       - name: Start backend in EC2
         run: |
           EC2_IP=$(terraform output -raw ec2_public_ip)
-          ssh -i raices-system-backend-ssh -o StrictHostKeyChecking=no ec2-user@$EC2_IP 'cd /home/ec2-user/backend && docker-compose up -d'
+          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP 'cd /home/ec2-user/backend && docker-compose up -d'
