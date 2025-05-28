@@ -1,49 +1,48 @@
-name: Destruir backend en EC2
+name: 🧨 Destruir infraestructura AWS
 
 on:
   workflow_dispatch:
     inputs:
-      confirm_destroy:
-        description: "¿Estás segura que quieres destruir la infraestructura?"
+      release_notes:
+        type: string
         required: true
-        default: "yes"
-        type: choice
-        options:
-          - yes
-          - no
+        default: 'Infra cleanup'
+        description: 'Release notes o motivo de la destrucción'
 
 jobs:
   destroy:
-    if: ${{ github.event.inputs.confirm_destroy == 'yes' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 🧾 Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Save SSH Private Key (por si necesitas conectarte antes de destruir)
+      - name: 🔐 Guardar clave SSH privada (opcional, por si queda la instancia colgando)
         run: |
           echo "${{ secrets.PRIVATE_KEY }}" > id_rsa
           chmod 600 id_rsa
 
-      - name: Set up Terraform
+      - name: ⚙️ Instalar Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.10.0
 
-      - name: Configure AWS Credentials
+      - name: 🔐 Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Create Terraform vars file
+      - name: 📄 Crear archivo de variables para Terraform
         run: |
           echo 'public_key = "${{ secrets.PUBLIC_KEY }}"' > terraform.auto.tfvars
 
-      - name: Initialize Terraform
+      - name: 📦 Inicializar Terraform
         run: terraform init
 
-      - name: Terraform Destroy
+      - name: 🔍 Plan de destrucción
+        run: terraform plan -destroy
+
+      - name: 💣 Destruir infraestructura
         run: terraform destroy -auto-approve
