@@ -8,5 +8,3 @@ contraseñas.txt
 .terraform/
 .terraform.*
 
-# SSH keys
-id_rsa
