@@ -14,47 +14,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 🧾 Clonar repositorio
         uses: actions/checkout@v4
 
-      - name: Save SSH Private Key
+      - name: 🔐 Guardar clave SSH privada
         run: |
           echo "${{ secrets.PRIVATE_KEY }}" > id_rsa
           chmod 600 id_rsa
 
-      - name: Set up Terraform
+      - name: ⚙️ Instalar Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.10.0
 
-      - name: Configure AWS Credentials
+      - name: 🔐 Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Create Terraform vars file
+      - name: 📄 Crear archivo de variables para Terraform
         run: |
           echo 'public_key = "${{ secrets.PUBLIC_KEY }}"' > terraform.auto.tfvars
 
-      - name: Initialize Terraform
+      - name: 📦 Inicializar Terraform
         run: terraform init
 
-      - name: Terraform Plan
+      - name: 🔍 Plan de Terraform
         run: terraform plan
 
-      - name: Terraform Apply
+      - name: 🚀 Aplicar infraestructura
         run: terraform apply -auto-approve
 
-      - name: Copy backend files and .env to EC2
+      - name: 🧪 Verificar conexión SSH
         run: |
           EC2_IP=$(terraform output -raw ec2_public_ip)
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          scp -i id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/
-          scp -i id_rsa -o StrictHostKeyChecking=no -r ./backend ec2-user@$EC2_IP:/home/ec2-user/
+          echo "IP EC2: $EC2_IP"
+          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP "echo '✅ Conexión SSH exitosa'"
 
-      - name: Start backend in EC2
+      - name: 📤 Subir archivo .env al EC2
+        run: |
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          EC2_IP=$(terraform output -raw ec2_public_ip)
+          scp -i id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/app/
+
+      - name: 🚀 Instalar dependencias y ejecutar backend
         run: |
           EC2_IP=$(terraform output -raw ec2_public_ip)
-          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP 'cd /home/ec2-user/backend && docker-compose up -d'
+          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP << 'EOF'
+            cd /home/ec2-user/app
+            npm install
+            npm run dev &
+          EOF
