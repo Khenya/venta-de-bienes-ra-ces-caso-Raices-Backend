@@ -62,10 +62,10 @@ resource "aws_key_pair" "nodejs-ssh" {
 }
 
 resource "aws_instance" "nodejs_server" {
-  ami                    = "ami-01816d07b1128cd2d"
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.nodejs-ssh.key_name
-  vpc_security_group_ids = [aws_security_group.nodejs_sg.id]
+  ami                         = "ami-01816d07b1128cd2d"
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.nodejs-ssh.key_name
+  vpc_security_group_ids      = [aws_security_group.nodejs_sg.id]
 
   tags = {
     Name = "NodeJS-App-Server"
@@ -88,7 +88,12 @@ resource "aws_instance" "nodejs_server" {
       "sudo yum install -y nodejs",
       "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
       "cd /home/ec2-user/app",
-      "npm install"
+      "npm install",
+      "echo '#!/bin/bash' > /home/ec2-user/start_app.sh",
+      "echo 'cd /home/ec2-user/app' >> /home/ec2-user/start_app.sh",
+      "echo 'nohup npm start > app.log 2>&1 &' >> /home/ec2-user/start_app.sh",
+      "chmod +x /home/ec2-user/start_app.sh",
+      "sudo -u ec2-user bash /home/ec2-user/start_app.sh"
     ]
   }
 }
