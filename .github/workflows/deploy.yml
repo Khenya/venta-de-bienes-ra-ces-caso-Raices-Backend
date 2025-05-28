@@ -47,17 +47,11 @@ jobs:
       - name: 🚀 Aplicar infraestructura
         run: terraform apply -auto-approve
 
-      - name: 🧪 Verificar conexión SSH
-        run: |
-          EC2_IP=$(terraform output -raw ec2_public_ip)
-          echo "IP EC2: $EC2_IP"
-          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP "echo '✅ Conexión SSH exitosa'"
-
       - name: 📤 Subir archivo .env al EC2
         run: |
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
           EC2_IP=$(terraform output -raw ec2_public_ip)
-          scp -i id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/app/
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+          scp -i ../id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/app/.env
 
       - name: 🚀 Instalar dependencias y ejecutar backend
         run: |
