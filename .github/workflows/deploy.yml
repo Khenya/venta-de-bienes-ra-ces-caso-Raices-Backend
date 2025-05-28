@@ -46,18 +46,3 @@ jobs:
 
       - name: 🚀 Aplicar infraestructura
         run: terraform apply -auto-approve
-
-      - name: 📤 Subir archivo .env al EC2
-        run: |
-          EC2_IP=$(terraform output -raw ec2_public_ip)
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-          scp -i ../id_rsa -o StrictHostKeyChecking=no .env ec2-user@$EC2_IP:/home/ec2-user/app/.env
-
-      - name: 🚀 Instalar dependencias y ejecutar backend
-        run: |
-          EC2_IP=$(terraform output -raw ec2_public_ip)
-          ssh -i id_rsa -o StrictHostKeyChecking=no ec2-user@$EC2_IP << 'EOF'
-            cd /home/ec2-user/app
-            npm install
-            npm run dev &
-          EOF
