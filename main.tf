@@ -29,11 +29,11 @@ resource "aws_security_group" "nodejs_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regla para Node.js (puerto 3001)
+  # Regla para Node.js (puerto 3000)
   ingress {
     description = "Node.js App port"
-    from_port   = 3001
-    to_port     = 3001
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
