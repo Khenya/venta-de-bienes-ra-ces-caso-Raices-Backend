@@ -165,7 +165,7 @@ const updatePropertyState = async (req, res) => {
     const { id } = req.params;
     let { state, price, property_number, folio_number, testimony_numbre } = req.body;
 
-    const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "PAGADO", "CADUCADO"];
+    const allowedStates = ["LIBRE", "RESERVADO", "RETRASADO", "CANCELADO", "LIQUIDANDO", "ALQUILADO", "RESERVADO", "CADUCADO"];
     if (state && !allowedStates.includes(state.toUpperCase())) {
       return res.status(400).json({ message: "Estado inválido" });
     }

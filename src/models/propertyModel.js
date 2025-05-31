@@ -160,7 +160,7 @@ const getPropertyCounts = async () => {
   const query = `
     SELECT
       COUNT(*) FILTER (WHERE state = 'LIBRE') AS libres,
-      COUNT(*) FILTER (WHERE state = 'PAGANDO') AS pagando,
+      COUNT(*) FILTER (WHERE state = 'LIQUIDANDO') AS liquidando,
       COUNT(*) FILTER (WHERE state = 'CANCELADO') AS cancelado,
       COUNT(*) AS total
     FROM property;
