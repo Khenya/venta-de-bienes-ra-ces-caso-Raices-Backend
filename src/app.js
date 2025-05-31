@@ -7,8 +7,8 @@ const authRoutes = require('./routes/authRoutes');
 const protectedRoutes = require('./routes/protectedRoutes');
 const usersRoutes = require('./routes/usersRoutes');
 const rolesRouter = require('./routes/rolesRoutes');
-const creditRoutes = require('./routes/creditroutes');
-const installmentRoutes = require('./routes/installmentroutes');
+const creditRoutes = require('./routes/creditRoutes');
+const installmentRoutes = require('./routes/installmentRoutes');
 
 const app = express();
 
@@ -19,7 +19,7 @@ app.use(cookieParser());
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-if (NODE_ENV === 'development' || NODE_ENV === 'local') {
+if (NODE_ENV === 'development' ) {
   app.use(cors({
     origin: 'http://localhost:3001',
     credentials: true,
