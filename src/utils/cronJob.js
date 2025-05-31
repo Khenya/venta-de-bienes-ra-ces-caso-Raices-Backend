@@ -89,7 +89,7 @@ async function checkOverdueInstallments() {
             created_at,
             state
           ) VALUES (
-            $1, $2, $3, $4, $5, $6, NOW(), 'pending'
+            $1, $2, $3, $4, $5, $6, NOW(), 'retraso en pagos'
           )
           RETURNING notification_id;
         `, [
