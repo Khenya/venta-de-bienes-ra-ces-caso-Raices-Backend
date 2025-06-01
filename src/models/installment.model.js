@@ -37,6 +37,7 @@ const Installment = {
     try {
       const query = `
         SELECT DISTINCT
+          i.installment_id,
           i.amount,
           i.installment_number,
           i.payment_date,
