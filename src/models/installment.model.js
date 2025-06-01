@@ -36,14 +36,14 @@ const Installment = {
     getByPropertyId: async (propertyId) => {
     try {
       const query = `
-        SELECT 
+        SELECT DISTINCT 
           i.installment_id,
           i.amount,
           i.payment_date,
           i.paid_date,
           i.interest,
           cr.total_amount as credit_total,
-          c.name as customer_name,
+          cr.credit_id,
           CASE 
             WHEN i.paid_date IS NULL AND i.payment_date < CURRENT_DATE THEN 'vencida'
             WHEN i.paid_date IS NOT NULL THEN 'pagada'
