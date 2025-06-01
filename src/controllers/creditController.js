@@ -42,15 +42,6 @@ const createCredit = async (req, res) => {
   }
 };
 
-const getAllCredits = async (req, res) => {
-  try {
-    const credits = await Credit.getAll();
-    res.status(200).json(credits);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 const getCreditById = async (req, res) => {
   try {
     const credit = await Credit.getById(req.params.id);
@@ -65,6 +56,5 @@ const getCreditById = async (req, res) => {
 
 module.exports = {
   createCredit,
-  getAllCredits,
   getCreditById,
 };

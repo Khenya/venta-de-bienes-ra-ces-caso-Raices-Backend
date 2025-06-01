@@ -9,12 +9,6 @@ const Credit = {
     );
     return res.rows[0];
   },
-
-  getAll: async () => {
-    const res = await pool.query(`SELECT * FROM credit`);
-    return res.rows;
-  },
-
   getById: async (id) => {
     const res = await pool.query(`SELECT * FROM credit WHERE credit_id = $1`, [id]);
     return res.rows[0];
