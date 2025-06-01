@@ -33,17 +33,18 @@ const Installment = {
     return res.rows;
   },
 
-    getByPropertyId: async (propertyId) => {
+  getByPropertyId: async (propertyId) => {
     try {
       const query = `
-        SELECT DISTINCT 
-          i.installment_id,
+        SELECT DISTINCT
           i.amount,
+          i.installment_number,
           i.payment_date,
           i.paid_date,
           i.interest,
           cr.total_amount as credit_total,
-          cr.credit_id,
+          cr.interest_number as credit_interest_rate,
+          cr.installment_count as total_installments,
           CASE 
             WHEN i.paid_date IS NULL AND i.payment_date < CURRENT_DATE THEN 'vencida'
             WHEN i.paid_date IS NOT NULL THEN 'pagada'
@@ -55,7 +56,7 @@ const Installment = {
         JOIN property p ON ncp.property_id = p.property_id
         LEFT JOIN customer c ON ncp.customer_id = c.customer_id
         WHERE p.property_id = $1
-        ORDER BY i.installment_number ASC, i.payment_date ASC
+        ORDER BY i.installment_number ASC, i.payment_date ASC;
       `;
       
       const client = await pool.connect();
