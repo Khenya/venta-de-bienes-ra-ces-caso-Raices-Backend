@@ -1,19 +1,25 @@
 const Credit = require('../models/credit.model');
 const Installment = require('../models/installment.model');
+const pool = require('../config/db'); // importante
 
 const createCredit = async (req, res) => {
   try {
-    const { totalAmount, interestNumber, installmentsCount } = req.body;
+    const {
+      totalAmount,
+      interestNumber,
+      installmentsCount,
+      propertyId,
+      customerId,
+      notificationId
+    } = req.body;
 
-    // Validación mínima
-    if (!totalAmount || !interestNumber || !installmentsCount) {
+    if (!totalAmount || !interestNumber || !installmentsCount || !propertyId) {
       return res.status(400).json({ error: "Faltan datos obligatorios" });
     }
 
     const credit = await Credit.create({ totalAmount, interestNumber, installmentsCount });
 
-    const installmentAmount = totalAmount / installmentsCount;
-
+    const installmentAmount = Math.round(totalAmount / installmentsCount); 
     const today = new Date();
     const dayOfMonth = today.getDate();
 
@@ -23,7 +29,6 @@ const createCredit = async (req, res) => {
       const paymentMonth = baseMonth + i;
 
       const safeDate = new Date(year, paymentMonth, 1);
-
       const lastDay = new Date(safeDate.getFullYear(), safeDate.getMonth() + 1, 0).getDate();
       safeDate.setDate(Math.min(dayOfMonth, lastDay));
 
@@ -35,10 +40,38 @@ const createCredit = async (req, res) => {
       });
     }
 
-    res.status(201).json({ message: "Crédito y cuotas creados correctamente", credit });
+    const insertFields = ['property_id', 'credit_id'];
+    const insertValues = [propertyId, credit.credit_id];
+    let placeholders = ['$1', '$2'];
+    let index = 3;
+
+    if (customerId) {
+      insertFields.push('customer_id');
+      insertValues.push(customerId);
+      placeholders.push(`$${index++}`);
+    }
+
+    if (notificationId) {
+      insertFields.push('notification_id');
+      insertValues.push(notificationId);
+      placeholders.push(`$${index++}`);
+    }
+
+    const insertQuery = `
+      INSERT INTO notification_customer_property (${insertFields.join(', ')})
+      VALUES (${placeholders.join(', ')})
+    `;
+
+    await pool.query(insertQuery, insertValues);
+
+    res.status(201).json({
+      message: "Crédito, cuotas y relación con propiedad creados exitosamente",
+      credit
+    });
+
   } catch (error) {
-    console.error("Error al crear crédito:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("❌ Error al crear crédito:", error);
+    res.status(500).json({ error: "Error al crear crédito" });
   }
 };
 
