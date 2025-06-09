@@ -9,6 +9,7 @@ const usersRoutes = require('./routes/usersRoutes');
 const rolesRouter = require('./routes/rolesRoutes');
 const creditRoutes = require('./routes/creditRoutes');
 const installmentRoutes = require('./routes/installmentRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 
@@ -19,7 +20,7 @@ app.use(cookieParser());
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-if (NODE_ENV === 'development' ) {
+if (NODE_ENV === 'development') {
   app.use(cors({
     origin: 'http://localhost:3001',
     credentials: true,
@@ -39,6 +40,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/roles', rolesRouter);
 app.use('/api/credits', creditRoutes);
 app.use('/api/installments', installmentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
