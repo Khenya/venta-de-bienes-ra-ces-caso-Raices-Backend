@@ -1,4 +1,4 @@
-name: Desplegando backend en EC2
+name: Desplegar backend en EC2
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
       release_notes:
         type: string
         required: true
-        default: 'Manual Debug Build'
+        default: 'Backend deploy'
         description: 'Release Notes'
 
 jobs:
@@ -46,3 +46,8 @@ jobs:
 
       - name: 🚀 Aplicar infraestructura
         run: terraform apply -auto-approve
+
+      - name: 🌐 Mostrar URL pública
+        run: |
+          echo "Tu backend está corriendo en:"
+          terraform output application_url

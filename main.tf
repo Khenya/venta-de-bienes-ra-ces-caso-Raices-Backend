@@ -9,9 +9,8 @@ variable "public_key" {
 
 resource "aws_security_group" "nodejs_sg" {
   name        = "backend-security-group"
-  description = "Security group for Node.js backend application"
+  description = "Security group for backend Node.js app"
 
-  # Regla SSH
   ingress {
     description = "SSH access"
     from_port   = 22
@@ -20,34 +19,14 @@ resource "aws_security_group" "nodejs_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regla HTTP (puerto 80)
   ingress {
-    description = "HTTP access"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Regla para Node.js (puerto 3000)
-  ingress {
-    description = "Node.js App port"
+    description = "App port 3000"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Regla para puerto 8000
-  ingress {
-    description = "Alternative Node.js port"
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Regla de salida (egress) - permite todo el tráfico de salida
   egress {
     from_port   = 0
     to_port     = 0
@@ -56,7 +35,7 @@ resource "aws_security_group" "nodejs_sg" {
   }
 }
 
-resource "aws_key_pair" "nodejs-ssh" {
+resource "aws_key_pair" "nodejs_ssh" {
   key_name   = "nodejs-ssh"
   public_key = var.public_key
 }
@@ -64,14 +43,12 @@ resource "aws_key_pair" "nodejs-ssh" {
 resource "aws_instance" "nodejs_server" {
   ami                    = "ami-01816d07b1128cd2d"
   instance_type          = "t2.micro"
-  key_name               = aws_key_pair.nodejs-ssh.key_name
+  key_name               = aws_key_pair.nodejs_ssh.key_name
   vpc_security_group_ids = [aws_security_group.nodejs_sg.id]
 
   tags = {
     Name = "NodeJS-App-Server"
   }
-
-  depends_on = [aws_security_group.nodejs_sg]
 
   provisioner "remote-exec" {
     connection {
@@ -83,12 +60,13 @@ resource "aws_instance" "nodejs_server" {
 
     inline = [
       "sudo yum update -y",
-      "sudo yum install -y git",
+      "sudo yum install -y git nginx",
       "curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -",
       "sudo yum install -y nodejs",
       "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
       "cd /home/ec2-user/app",
-      "npm install"
+      "npm install",
+      "nohup npm start > app.log 2>&1 &"
     ]
   }
 }
@@ -97,7 +75,7 @@ resource "aws_eip" "nodejs_eip" {
   domain = "vpc"
 }
 
-resource "aws_eip_association" "nodejs_eip_association" {
+resource "aws_eip_association" "nodejs_eip_assoc" {
   instance_id   = aws_instance.nodejs_server.id
   allocation_id = aws_eip.nodejs_eip.id
 }
@@ -107,5 +85,5 @@ output "ec2_public_ip" {
 }
 
 output "application_url" {
-  value = "http://${aws_eip.nodejs_eip.public_ip}:3001"
+  value = "http://${aws_eip.nodejs_eip.public_ip}:3000"
 }
