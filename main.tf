@@ -9,10 +9,10 @@ variable "public_key" {
 
 resource "aws_security_group" "nodejs_sg" {
   name        = "backend-security-group"
-  description = "Security group for backend Node.js app"
+  description = "SG for backend with SSH, HTTP and HTTPS"
 
   ingress {
-    description = "SSH access"
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -20,9 +20,17 @@ resource "aws_security_group" "nodejs_sg" {
   }
 
   ingress {
-    description = "App port 3000"
-    from_port   = 3000
-    to_port     = 3000
+    description = "HTTPS (SSL)"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP (backend interno)"
+    from_port   = 3001
+    to_port     = 3001
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -59,14 +67,24 @@ resource "aws_instance" "nodejs_server" {
     }
 
     inline = [
-      "sudo yum update -y",
-      "sudo yum install -y git nginx",
-      "curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -",
-      "sudo yum install -y nodejs",
-      "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
-      "cd /home/ec2-user/app",
-      "npm install",
-      "nohup npm start > app.log 2>&1 &"
+      "sudo bash -c 'cat <<EOF > /etc/nginx/conf.d/backend.conf\n" +
+      "server {\n" +
+      "    listen 443 ssl;\n" +
+      "    server_name _;\n" +
+      "    ssl_certificate /etc/ssl/certs/selfsigned.crt;\n" +
+      "    ssl_certificate_key /etc/ssl/private/selfsigned.key;\n" +
+      "    ssl_protocols TLSv1.2 TLSv1.3;\n" +
+      "    ssl_ciphers HIGH:!aNULL:!MD5;\n" +
+      "    location / {\n" +
+      "        proxy_pass http://127.0.0.1:3001;\n" +
+      "        proxy_http_version 1.1;\n" +
+      "        proxy_set_header Upgrade \\$http_upgrade;\n" +
+      "        proxy_set_header Connection \"upgrade\";\n" +
+      "        proxy_set_header Host \\$host;\n" +
+      "        proxy_cache_bypass \\$http_upgrade;\n" +
+      "    }\n" +
+      "}\n" +
+      "EOF'"
     ]
   }
 }
@@ -84,6 +102,6 @@ output "ec2_public_ip" {
   value = aws_instance.nodejs_server.public_ip
 }
 
-output "application_url" {
-  value = "http://${aws_eip.nodejs_eip.public_ip}:3000"
+output "application_url_https" {
+  value = "https://${aws_eip.nodejs_eip.public_ip}"
 }
