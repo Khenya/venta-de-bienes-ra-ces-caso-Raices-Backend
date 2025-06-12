@@ -29,8 +29,8 @@ resource "aws_security_group" "nodejs_sg" {
 
   ingress {
     description = "HTTP (backend interno)"
-    from_port   = 3001
-    to_port     = 3001
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -69,11 +69,11 @@ resource "aws_instance" "nodejs_server" {
     inline = [
       "sudo yum update -y",
       "sudo yum install -y git nginx openssl",
-      "curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -",
+      "curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -",
       "sudo yum install -y nodejs",
       "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
-      "cd /home/ec2-user/app && npm install",
-      "nohup npm run dev > /home/ec2-user/app.log 2>&1 &",
+      "cd /home/ec2-user/app && npm install --only=production",
+      "nohup npm start > /home/ec2-user/app.log 2>&1 &",
       "sudo mkdir -p /etc/ssl/certs /etc/ssl/private",
       "sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/selfsigned.key -out /etc/ssl/certs/selfsigned.crt -subj \"/CN=localhost\"",
       <<-EOF
@@ -86,7 +86,7 @@ resource "aws_instance" "nodejs_server" {
           ssl_protocols TLSv1.2 TLSv1.3;
           ssl_ciphers HIGH:!aNULL:!MD5;
           location / {
-              proxy_pass http://127.0.0.1:3001;
+              proxy_pass http://127.0.0.1:3000;
               proxy_http_version 1.1;
               proxy_set_header Upgrade \$http_upgrade;
               proxy_set_header Connection "upgrade";
