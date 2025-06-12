@@ -58,7 +58,7 @@ resource "aws_instance" "nodejs_server" {
     Name = "NodeJS-App-Server"
   }
 
-   provisioner "remote-exec" {
+  provisioner "remote-exec" {
     connection {
       type        = "ssh"
       host        = self.public_ip
@@ -74,27 +74,29 @@ resource "aws_instance" "nodejs_server" {
       "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
       "cd /home/ec2-user/app && npm install",
       "nohup npm run dev > /home/ec2-user/app.log 2>&1 &",
-
       "sudo mkdir -p /etc/ssl/certs /etc/ssl/private",
       "sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/selfsigned.key -out /etc/ssl/certs/selfsigned.crt -subj \"/CN=localhost\"",
-
-      "echo 'server {\n" +
-      "    listen 443 ssl;\n" +
-      "    server_name _;\n" +
-      "    ssl_certificate /etc/ssl/certs/selfsigned.crt;\n" +
-      "    ssl_certificate_key /etc/ssl/private/selfsigned.key;\n" +
-      "    ssl_protocols TLSv1.2 TLSv1.3;\n" +
-      "    ssl_ciphers HIGH:!aNULL:!MD5;\n" +
-      "    location / {\n" +
-      "        proxy_pass http://127.0.0.1:3001;\n" +
-      "        proxy_http_version 1.1;\n" +
-      "        proxy_set_header Upgrade \\$http_upgrade;\n" +
-      "        proxy_set_header Connection \"upgrade\";\n" +
-      "        proxy_set_header Host \\$host;\n" +
-      "        proxy_cache_bypass \\$http_upgrade;\n" +
-      "    }\n" +
-      "}' | sudo tee /etc/nginx/conf.d/backend.conf",
-
+      <<-EOF
+      sudo tee /etc/nginx/conf.d/backend.conf > /dev/null <<NGINX_CONF
+      server {
+          listen 443 ssl;
+          server_name _;
+          ssl_certificate /etc/ssl/certs/selfsigned.crt;
+          ssl_certificate_key /etc/ssl/private/selfsigned.key;
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_ciphers HIGH:!aNULL:!MD5;
+          location / {
+              proxy_pass http://127.0.0.1:3001;
+              proxy_http_version 1.1;
+              proxy_set_header Upgrade \$http_upgrade;
+              proxy_set_header Connection "upgrade";
+              proxy_set_header Host \$host;
+              proxy_cache_bypass \$http_upgrade;
+          }
+      }
+      NGINX_CONF
+      EOF
+      ,
       "sudo systemctl enable nginx",
       "sudo systemctl restart nginx"
     ]

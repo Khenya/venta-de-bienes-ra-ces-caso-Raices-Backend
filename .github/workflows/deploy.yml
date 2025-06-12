@@ -50,4 +50,4 @@ jobs:
       - name: 🌐 Mostrar URL pública
         run: |
           echo "Tu backend está corriendo en:"
-          terraform output application_url
+          terraform output application_url_https
