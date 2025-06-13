@@ -7,14 +7,27 @@ variable "public_key" {
   type        = string
 }
 
+resource "aws_key_pair" "nodejs_ssh" {
+  key_name   = "nodejs-ssh"
+  public_key = var.public_key
+}
+
 resource "aws_security_group" "nodejs_sg" {
   name        = "backend-security-group"
-  description = "SG for backend with SSH, HTTP and HTTPS"
+  description = "SG for Node.js backend with HTTPS"
 
   ingress {
     description = "SSH"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTP (Let's Encrypt challenge)"
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -27,14 +40,6 @@ resource "aws_security_group" "nodejs_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "HTTP (backend interno)"
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -43,16 +48,11 @@ resource "aws_security_group" "nodejs_sg" {
   }
 }
 
-resource "aws_key_pair" "nodejs_ssh" {
-  key_name   = "nodejs-ssh"
-  public_key = var.public_key
-}
-
 resource "aws_instance" "nodejs_server" {
-  ami                    = "ami-01816d07b1128cd2d"
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.nodejs_ssh.key_name
-  vpc_security_group_ids = [aws_security_group.nodejs_sg.id]
+  ami                         = "ami-01816d07b1128cd2d"
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.nodejs_ssh.key_name
+  vpc_security_group_ids      = [aws_security_group.nodejs_sg.id]
 
   tags = {
     Name = "NodeJS-App-Server"
@@ -69,45 +69,33 @@ resource "aws_instance" "nodejs_server" {
     inline = [
       "sudo yum update -y",
       "sudo yum install -y git nginx openssl",
-      "curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -",
+
+      "curl -fsSL https://rpm.nodesource.com/setup_16.x | sudo bash -",
       "sudo yum install -y nodejs",
       "git clone https://github.com/Khenya/venta-de-bienes-ra-ces-caso-Raices-Backend /home/ec2-user/app",
-      "cd /home/ec2-user/app && npm install --only=production",
-      "nohup npm start > /home/ec2-user/app.log 2>&1 &",
-      "sudo mkdir -p /etc/ssl/certs /etc/ssl/private",
-      "sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/selfsigned.key -out /etc/ssl/certs/selfsigned.crt -subj \"/CN=localhost\"",
-      <<-EOF
-      sudo tee /etc/nginx/conf.d/backend.conf > /dev/null <<NGINX_CONF
-      server {
-          listen 443 ssl;
-          server_name _;
-          ssl_certificate /etc/ssl/certs/selfsigned.crt;
-          ssl_certificate_key /etc/ssl/private/selfsigned.key;
-          ssl_protocols TLSv1.2 TLSv1.3;
-          ssl_ciphers HIGH:!aNULL:!MD5;
-          location / {
-              proxy_pass http://127.0.0.1:3000;
-              proxy_http_version 1.1;
-              proxy_set_header Upgrade \$http_upgrade;
-              proxy_set_header Connection "upgrade";
-              proxy_set_header Host \$host;
-              proxy_cache_bypass \$http_upgrade;
-          }
-      }
-      NGINX_CONF
-      EOF
-      ,
-      "sudo systemctl enable nginx",
-      "sudo systemctl restart nginx"
+      "cd /home/ec2-user/app && npm install",
+      "nohup npm run dev > /home/ec2-user/app.log 2>&1 &",
+
+      "sudo yum install -y epel-release",
+      "sudo yum install -y certbot python3-certbot-nginx",
+
+      "sudo bash -c 'echo \"server { listen 80; server_name api.miapp.com; location / { return 200 OK; } }\" > /etc/nginx/conf.d/temp.conf'",
+      "sudo systemctl restart nginx",
+
+      "sudo certbot --nginx -n --agree-tos --redirect --email brendachoque1@gamil.com -d raicesnuevaesperanza.me",
+
+      "echo \"0 0 * * * root certbot renew --post-hook 'systemctl reload nginx'\" | sudo tee /etc/cron.d/certbot-renew"
     ]
   }
+
+  depends_on = [aws_key_pair.nodejs_ssh]
 }
 
 resource "aws_eip" "nodejs_eip" {
   domain = "vpc"
 }
 
-resource "aws_eip_association" "nodejs_eip_assoc" {
+resource "aws_eip_association" "eip_assoc" {
   instance_id   = aws_instance.nodejs_server.id
   allocation_id = aws_eip.nodejs_eip.id
 }
@@ -117,5 +105,5 @@ output "ec2_public_ip" {
 }
 
 output "application_url_https" {
-  value = "https://${aws_eip.nodejs_eip.public_ip}"
+  value = "https://raicesnuevaesperanza.me"
 }
