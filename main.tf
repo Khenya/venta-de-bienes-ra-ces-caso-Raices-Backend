@@ -17,7 +17,7 @@ resource "aws_security_group" "nodejs_sg" {
   description = "SG for Node.js backend with HTTPS"
 
   ingress {
-    description = "SSH"
+    description = "Allow SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -25,7 +25,7 @@ resource "aws_security_group" "nodejs_sg" {
   }
 
   ingress {
-    description = "HTTP (Let's Encrypt challenge)"
+    description = "Allow HTTP for LetsEncrypt"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -33,7 +33,7 @@ resource "aws_security_group" "nodejs_sg" {
   }
 
   ingress {
-    description = "HTTPS (SSL)"
+    description = "Allow HTTPS traffic"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -49,10 +49,10 @@ resource "aws_security_group" "nodejs_sg" {
 }
 
 resource "aws_instance" "nodejs_server" {
-  ami                         = "ami-01816d07b1128cd2d"
-  instance_type               = "t2.micro"
-  key_name                    = aws_key_pair.nodejs_ssh.key_name
-  vpc_security_group_ids      = [aws_security_group.nodejs_sg.id]
+  ami                    = "ami-01816d07b1128cd2d"
+  instance_type          = "t2.micro"
+  key_name               = aws_key_pair.nodejs_ssh.key_name
+  vpc_security_group_ids = [aws_security_group.nodejs_sg.id]
 
   tags = {
     Name = "NodeJS-App-Server"
@@ -79,10 +79,10 @@ resource "aws_instance" "nodejs_server" {
       "sudo yum install -y epel-release",
       "sudo yum install -y certbot python3-certbot-nginx",
 
-      "sudo bash -c 'echo \"server { listen 80; server_name api.miapp.com; location / { return 200 OK; } }\" > /etc/nginx/conf.d/temp.conf'",
+      "sudo bash -c 'echo \"server { listen 80; server_name raicesnuevaesperanza.me; location / { return 200 OK; } }\" > /etc/nginx/conf.d/temp.conf'",
       "sudo systemctl restart nginx",
 
-      "sudo certbot --nginx -n --agree-tos --redirect --email brendachoque1@gamil.com -d raicesnuevaesperanza.me",
+      "sudo certbot --nginx -n --agree-tos --redirect --email brendachoque1@gmail.com -d raicesnuevaesperanza.me",
 
       "echo \"0 0 * * * root certbot renew --post-hook 'systemctl reload nginx'\" | sudo tee /etc/cron.d/certbot-renew"
     ]
